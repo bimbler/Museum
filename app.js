@@ -195,10 +195,10 @@ startBtn.addEventListener("click", async () => {
 
 async function startAR() {
   logDebug("Creating MindARThree instance...", "info");
-  // Aligned with official MindAR Three.js example: use #container (100vw×100vh), addAnchor(0), add to anchor.group, then start() + setAnimationLoop
+  
   const mindarThree = new MindARThree({
-    container: document.querySelector("#container"),
-    imageTargetSrc: getAssetUrl("./assets/targets.mind"),
+    container: document.body,
+    imageTargetSrc: "./assets/targets.mind",
     uiScanning: "no",
     uiLoading: "no",
   });
@@ -227,36 +227,39 @@ async function startAR() {
   anchor = mindarThree.addAnchor(0);
   logDebug("Anchor created", "success");
 
-  // Add a test cube - POSITIONED IN FRONT OF CAMERA
-  testCube = new THREE.Mesh(
-    new THREE.BoxGeometry(0.5, 0.5, 0.5),
-    new THREE.MeshStandardMaterial({ 
-      color: 0xff0000, 
-      emissive: 0xff0000, 
-      emissiveIntensity: 1.0,
-      wireframe: false
-    })
-  );
-  // Position cube in front of target (positive Z = toward user in anchor space)
-  testCube.position.set(0, 0, 0.5);
-  anchor.group.add(testCube);
+  // Load Buddha model
+  setStatus("Loading model…");
+  logDebug("Loading buddha.glb...", "info");
+  const loader = new GLTFLoader();
   
-  // Add coordinate axes helper to see orientation
-  const axesHelper = new THREE.AxesHelper(0.3);
-  axesHelper.position.set(0, 0, 0.5);
-  anchor.group.add(axesHelper);
-  
-  logDebug("RED CUBE added at Z=0.5 (in front of target)", "success");
-  logDebug("Axes helper added at same position", "info");
-  
-  // Add a green sphere for comparison
-  const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(0.2, 32, 32),
-    new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1.0 })
-  );
-  sphere.position.set(0, 0.3, 0.5);
-  anchor.group.add(sphere);
-  logDebug("Green sphere added above cube", "info");
+  try {
+    const gltf = await loader.loadAsync("./assets/buddha.glb");
+    model = gltf.scene;
+    
+    logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
+    
+    // Position model in visible range (away from camera near plane)
+    model.scale.setScalar(0.5);
+    model.position.set(0, 0, -0.5);
+    
+    // Optimize materials
+    model.traverse((node) => {
+      if (node.isMesh) {
+        node.material.needsUpdate = true;
+        if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
+          node.material.metalness = 0.3;
+          node.material.roughness = 0.7;
+        }
+      }
+    });
+
+    anchor.group.add(model);
+    logDebug("Buddha model added to anchor", "success");
+    
+  } catch (error) {
+    logDebug(`Failed to load GLB: ${error.message}`, "error");
+    setStatus("Failed to load model");
+  }
 
   // Tracking callbacks
   anchor.onTargetFound = () => {
