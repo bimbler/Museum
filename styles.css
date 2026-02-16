@@ -58,6 +58,62 @@ html, body {
   text-align: center;
 }
 
+/* Version indicator */
+.version {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  z-index: 5;
+  opacity: 0.7;
+}
+
+/* Debug info panel */
+.debug-info {
+  position: fixed;
+  bottom: 60px;
+  left: 12px;
+  right: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 11px;
+  font-family: monospace;
+  z-index: 4;
+  display: none;
+}
+
+.debug-info.visible {
+  display: block;
+}
+
+.debug-info .log-entry {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.debug-info .log-entry.error {
+  color: #ff6b6b;
+}
+
+.debug-info .log-entry.success {
+  color: #51cf66;
+}
+
+.debug-info .log-entry.info {
+  color: #74c0fc;
+}
+
 /* Side info panel - Bottom drawer style, less intrusive */
 .panel {
   position: fixed;

@@ -5,6 +5,7 @@ import { MindARThree } from "mindar-image-three";
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const statusBar = document.getElementById("statusBar");
+const debugInfo = document.getElementById("debugInfo");
 
 const infoPanel = document.getElementById("infoPanel");
 const closePanel = document.getElementById("closePanel");
@@ -13,6 +14,25 @@ const resetPoseBtn = document.getElementById("resetPose");
 
 let spinning = true;
 let model = null;
+let debugLogs = [];
+
+// Debug logger that shows in UI
+function logDebug(message, type = 'info') {
+  console.log(message);
+  debugLogs.push({ message, type, time: new Date().toLocaleTimeString() });
+  
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${type}`;
+  entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+  debugInfo.appendChild(entry);
+  debugInfo.scrollTop = debugInfo.scrollHeight;
+  debugInfo.classList.add('visible');
+  
+  // Keep only last 20 logs
+  if (debugInfo.children.length > 20) {
+    debugInfo.removeChild(debugInfo.firstChild);
+  }
+}
 
 // UI helpers
 function setStatus(msg) { statusBar.textContent = msg; }
@@ -38,18 +58,23 @@ resetPoseBtn.addEventListener("click", () => {
 startBtn.addEventListener("click", async () => {
   startBtn.disabled = true;
   setStatus("Starting camera…");
+  logDebug("AR initialization started", "info");
 
   try {
     await startAR();
     startOverlay.style.display = "none";
+    logDebug("AR started successfully", "success");
   } catch (err) {
     console.error(err);
+    logDebug(`Error: ${err.message}`, "error");
     setStatus("Could not start AR. Check camera permissions / HTTPS.");
     startBtn.disabled = false;
   }
 });
 
 async function startAR() {
+  logDebug("Creating MindARThree instance...", "info");
+  
   const mindarThree = new MindARThree({
     container: document.body,
     imageTargetSrc: "./assets/targets.mind",
@@ -62,6 +87,7 @@ async function startAR() {
   // Ensure renderer fills the entire screen
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.setPixelRatio(window.devicePixelRatio);
+  logDebug("Renderer configured", "success");
 
   // Lights (simple + effective)
   const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
@@ -74,9 +100,11 @@ async function startAR() {
   // Add ambient light for better visibility
   const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
   scene.add(ambientLight);
+  logDebug("Lights added to scene", "success");
 
   // Anchor 0 = first target in your .mind file
   const anchor = mindarThree.addAnchor(0);
+  logDebug("Anchor created", "success");
 
   // Add a test cube first to verify rendering works
   const testCube = new THREE.Mesh(
@@ -85,34 +113,34 @@ async function startAR() {
   );
   testCube.position.set(0, 0, 0);
   anchor.group.add(testCube);
-  console.log("Test cube added to anchor");
+  logDebug("Test RED CUBE added - you should see this when target found", "info");
 
   // Load GLB
   setStatus("Loading model…");
+  logDebug("Loading buddha.glb...", "info");
   const loader = new GLTFLoader();
   
   try {
     const gltf = await loader.loadAsync("./assets/buddha.glb");
     model = gltf.scene;
     
-    console.log("GLB loaded successfully", model);
-    console.log("Model children:", model.children.length);
-    console.log("Model bounding box:");
+    logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
     
     // Calculate bounding box to understand model size
     const box = new THREE.Box3().setFromObject(model);
     const size = new THREE.Vector3();
     box.getSize(size);
-    console.log("Model size:", size);
+    logDebug(`Model size: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`, "info");
     
     // Scale up for better visibility
     model.scale.setScalar(1.0);
     model.position.set(0, 0, 0);
     
-    // Ensure model materials are visible
+    // Count meshes
+    let meshCount = 0;
     model.traverse((node) => {
       if (node.isMesh) {
-        console.log("Found mesh:", node.name, "Material:", node.material.type);
+        meshCount++;
         node.material.needsUpdate = true;
         // Make sure materials respond to light
         if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
@@ -121,15 +149,18 @@ async function startAR() {
         }
       }
     });
+    
+    logDebug(`Found ${meshCount} meshes in model`, "success");
 
     anchor.group.add(model);
-    console.log("Model added to anchor group");
+    logDebug("Buddha model added to anchor", "success");
     
     // Remove test cube once model is loaded
     anchor.group.remove(testCube);
+    logDebug("Test cube removed", "info");
     
   } catch (error) {
-    console.error("Failed to load GLB:", error);
+    logDebug(`Failed to load GLB: ${error.message}`, "error");
     setStatus("Failed to load model");
   }
 
@@ -137,24 +168,25 @@ async function startAR() {
   anchor.onTargetFound = () => {
     setStatus("Target found");
     showPanel();
-    console.log("Target found - anchor visible:", anchor.group.visible);
-    console.log("Anchor children count:", anchor.group.children.length);
+    logDebug(`Target found! Anchor visible: ${anchor.group.visible}`, "success");
+    logDebug(`Anchor has ${anchor.group.children.length} children`, "info");
     if (model) {
-      console.log("Model visible:", model.visible);
-      console.log("Model scale:", model.scale);
-      console.log("Model position:", model.position);
+      logDebug(`Model visible: ${model.visible}, scale: ${model.scale.x}`, "info");
     }
   };
 
   anchor.onTargetLost = () => {
     setStatus("Scanning…");
     hidePanel();
+    logDebug("Target lost", "info");
   };
 
   // Start
   setStatus("Starting AR…");
+  logDebug("Starting MindAR...", "info");
   await mindarThree.start();
   setStatus("Scanning…");
+  logDebug("MindAR started - point at target image", "success");
 
   // Render loop
   renderer.setAnimationLoop(() => {
