@@ -11,6 +11,7 @@ const infoPanel = document.getElementById("infoPanel");
 const closePanel = document.getElementById("closePanel");
 const toggleSpinBtn = document.getElementById("toggleSpin");
 const resetPoseBtn = document.getElementById("resetPose");
+const loadBuddhaBtn = document.getElementById("loadBuddha");
 
 // Debug control buttons
 const scaleUpBtn = document.getElementById("scaleUp");
@@ -22,6 +23,8 @@ const moveBackBtn = document.getElementById("moveBack");
 
 let spinning = true;
 let model = null;
+let testCube = null;
+let anchor = null;
 let debugLogs = [];
 
 // Debug logger that shows in UI
@@ -44,43 +47,112 @@ function logDebug(message, type = 'info') {
 
 // Debug controls
 scaleUpBtn.addEventListener("click", () => {
-  if (!model) return;
-  model.scale.x += 0.2;
-  model.scale.y += 0.2;
-  model.scale.z += 0.2;
-  logDebug(`Scale: ${model.scale.x.toFixed(2)}`, "info");
+  const obj = model || testCube;
+  if (!obj) return;
+  obj.scale.x += 0.2;
+  obj.scale.y += 0.2;
+  obj.scale.z += 0.2;
+  logDebug(`Scale: ${obj.scale.x.toFixed(2)}`, "info");
 });
 
 scaleDownBtn.addEventListener("click", () => {
-  if (!model) return;
-  model.scale.x = Math.max(0.1, model.scale.x - 0.2);
-  model.scale.y = Math.max(0.1, model.scale.y - 0.2);
-  model.scale.z = Math.max(0.1, model.scale.z - 0.2);
-  logDebug(`Scale: ${model.scale.x.toFixed(2)}`, "info");
+  const obj = model || testCube;
+  if (!obj) return;
+  obj.scale.x = Math.max(0.1, obj.scale.x - 0.2);
+  obj.scale.y = Math.max(0.1, obj.scale.y - 0.2);
+  obj.scale.z = Math.max(0.1, obj.scale.z - 0.2);
+  logDebug(`Scale: ${obj.scale.x.toFixed(2)}`, "info");
 });
 
 moveUpBtn.addEventListener("click", () => {
-  if (!model) return;
-  model.position.y += 0.1;
-  logDebug(`Position Y: ${model.position.y.toFixed(2)}`, "info");
+  const obj = model || testCube;
+  if (!obj) return;
+  obj.position.y += 0.1;
+  logDebug(`Position Y: ${obj.position.y.toFixed(2)}`, "info");
 });
 
 moveDownBtn.addEventListener("click", () => {
-  if (!model) return;
-  model.position.y -= 0.1;
-  logDebug(`Position Y: ${model.position.y.toFixed(2)}`, "info");
+  const obj = model || testCube;
+  if (!obj) return;
+  obj.position.y -= 0.1;
+  logDebug(`Position Y: ${obj.position.y.toFixed(2)}`, "info");
 });
 
 moveForwardBtn.addEventListener("click", () => {
-  if (!model) return;
-  model.position.z += 0.1;
-  logDebug(`Position Z: ${model.position.z.toFixed(2)}`, "info");
+  const obj = model || testCube;
+  if (!obj) return;
+  obj.position.z += 0.1;
+  logDebug(`Position Z: ${obj.position.z.toFixed(2)}`, "info");
 });
 
 moveBackBtn.addEventListener("click", () => {
-  if (!model) return;
-  model.position.z -= 0.1;
-  logDebug(`Position Z: ${model.position.z.toFixed(2)}`, "info");
+  const obj = model || testCube;
+  if (!obj) return;
+  obj.position.z -= 0.1;
+  logDebug(`Position Z: ${obj.position.z.toFixed(2)}`, "info");
+});
+
+// Load Buddha button
+loadBuddhaBtn.addEventListener("click", async () => {
+  if (model) {
+    logDebug("Buddha already loaded", "info");
+    return;
+  }
+  
+  loadBuddhaBtn.disabled = true;
+  loadBuddhaBtn.textContent = "Loading...";
+  logDebug("Starting Buddha model load...", "info");
+  
+  try {
+    const loader = new GLTFLoader();
+    const gltf = await loader.loadAsync("./assets/buddha.glb");
+    model = gltf.scene;
+    
+    logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
+    
+    // Calculate bounding box
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    logDebug(`Model size: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`, "info");
+    
+    // Start at same scale as cube
+    model.scale.setScalar(1.0);
+    model.position.set(0, 0, 0);
+    
+    // Count meshes and optimize materials
+    let meshCount = 0;
+    model.traverse((node) => {
+      if (node.isMesh) {
+        meshCount++;
+        node.material.needsUpdate = true;
+        if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
+          node.material.metalness = 0.3;
+          node.material.roughness = 0.7;
+        }
+      }
+    });
+    
+    logDebug(`Found ${meshCount} meshes in model`, "success");
+    
+    // Remove test cube and add Buddha
+    if (testCube && anchor) {
+      anchor.group.remove(testCube);
+      logDebug("Test cube removed", "info");
+    }
+    
+    if (anchor) {
+      anchor.group.add(model);
+      logDebug("Buddha model added to anchor - should be visible now!", "success");
+    }
+    
+    loadBuddhaBtn.textContent = "✓ Buddha Loaded";
+    
+  } catch (error) {
+    logDebug(`Failed to load GLB: ${error.message}`, "error");
+    loadBuddhaBtn.disabled = false;
+    loadBuddhaBtn.textContent = "Retry Load Buddha";
+  }
 });
 
 // UI helpers
@@ -97,11 +169,12 @@ toggleSpinBtn.addEventListener("click", () => {
 });
 
 resetPoseBtn.addEventListener("click", () => {
-  if (!model) return;
-  model.rotation.set(0, 0, 0);
-  model.position.set(0, 0, 0);
-  model.scale.setScalar(0.5);
-  logDebug("Reset to scale: 0.5, pos: (0,0,0)", "info");
+  const obj = model || testCube;
+  if (!obj) return;
+  obj.rotation.set(0, 0, 0);
+  obj.position.set(0, 0, 0);
+  obj.scale.setScalar(1.0);
+  logDebug("Reset to scale: 1.0, pos: (0,0,0)", "info");
 });
 
 // Boot AR only after user gesture
@@ -153,76 +226,34 @@ async function startAR() {
   logDebug("Lights added to scene", "success");
 
   // Anchor 0 = first target in your .mind file
-  const anchor = mindarThree.addAnchor(0);
+  anchor = mindarThree.addAnchor(0);
   logDebug("Anchor created", "success");
 
-  // Add a test cube first to verify rendering works
-  const testCube = new THREE.Mesh(
-    new THREE.BoxGeometry(0.1, 0.1, 0.1),
-    new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.5 })
+  // Add a test cube - this is what you'll see first
+  testCube = new THREE.Mesh(
+    new THREE.BoxGeometry(0.2, 0.2, 0.2),
+    new THREE.MeshStandardMaterial({ 
+      color: 0xff0000, 
+      emissive: 0xff0000, 
+      emissiveIntensity: 0.8 
+    })
   );
   testCube.position.set(0, 0, 0);
   anchor.group.add(testCube);
-  logDebug("Test RED CUBE added at (0,0,0) size 0.1 - should be visible when target found", "info");
-
-  // Load GLB
-  setStatus("Loading model…");
-  logDebug("Loading buddha.glb...", "info");
-  const loader = new GLTFLoader();
-  
-  try {
-    const gltf = await loader.loadAsync("./assets/buddha.glb");
-    model = gltf.scene;
-    
-    logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
-    
-    // Calculate bounding box to understand model size
-    const box = new THREE.Box3().setFromObject(model);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    logDebug(`Model size: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`, "info");
-    
-    // Scale down to a more reasonable size
-    model.scale.setScalar(0.5);
-    model.position.set(0, 0, 0);
-    
-    // Count meshes
-    let meshCount = 0;
-    model.traverse((node) => {
-      if (node.isMesh) {
-        meshCount++;
-        node.material.needsUpdate = true;
-        // Make sure materials respond to light
-        if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
-          node.material.metalness = 0.3;
-          node.material.roughness = 0.7;
-        }
-      }
-    });
-    
-    logDebug(`Found ${meshCount} meshes in model`, "success");
-
-    anchor.group.add(model);
-    logDebug("Buddha model added to anchor", "success");
-    
-    // DON'T remove test cube - keep both visible for debugging
-    logDebug("Both cube and buddha should now be visible", "info");
-    
-  } catch (error) {
-    logDebug(`Failed to load GLB: ${error.message}`, "error");
-    setStatus("Failed to load model");
-  }
+  logDebug("RED CUBE added (0.2 size) - you should see this when target found", "success");
+  logDebug("Use 'Load Buddha Model' button to replace cube with Buddha", "info");
 
   // Tracking callbacks
   anchor.onTargetFound = () => {
-    setStatus("Target found");
+    setStatus("🎯 Target found - see the cube?");
     showPanel();
     logDebug(`Target found! Anchor visible: ${anchor.group.visible}`, "success");
     logDebug(`Anchor has ${anchor.group.children.length} children`, "info");
-    logDebug(`Camera near: ${camera.near}, far: ${camera.far}`, "info");
+    if (testCube) {
+      logDebug(`Cube pos: (${testCube.position.x}, ${testCube.position.y}, ${testCube.position.z})`, "info");
+    }
     if (model) {
       logDebug(`Model pos: (${model.position.x.toFixed(2)}, ${model.position.y.toFixed(2)}, ${model.position.z.toFixed(2)})`, "info");
-      logDebug(`Model visible: ${model.visible}, scale: ${model.scale.x}`, "info");
     }
   };
 
@@ -236,12 +267,20 @@ async function startAR() {
   setStatus("Starting AR…");
   logDebug("Starting MindAR...", "info");
   await mindarThree.start();
-  setStatus("Scanning…");
-  logDebug("MindAR started - point at target image", "success");
+  setStatus("📷 Scanning for target…");
+  logDebug("MindAR started - point at target to see RED CUBE", "success");
 
   // Render loop
   renderer.setAnimationLoop(() => {
-    if (model && spinning) model.rotation.y += 0.01;
+    // Spin whichever object is active
+    if (spinning) {
+      if (model) {
+        model.rotation.y += 0.01;
+      } else if (testCube) {
+        testCube.rotation.y += 0.02;
+        testCube.rotation.x += 0.01;
+      }
+    }
     renderer.render(scene, camera);
   });
 
