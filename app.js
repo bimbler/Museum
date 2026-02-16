@@ -229,9 +229,9 @@ async function startAR() {
   anchor = mindarThree.addAnchor(0);
   logDebug("Anchor created", "success");
 
-  // Add a test cube - this is what you'll see first - MAKE IT BIG
+  // Add a test cube - POSITIONED IN FRONT OF CAMERA
   testCube = new THREE.Mesh(
-    new THREE.BoxGeometry(1.0, 1.0, 1.0),  // Much bigger - 1 meter cube
+    new THREE.BoxGeometry(0.5, 0.5, 0.5),
     new THREE.MeshStandardMaterial({ 
       color: 0xff0000, 
       emissive: 0xff0000, 
@@ -239,24 +239,26 @@ async function startAR() {
       wireframe: false
     })
   );
-  testCube.position.set(0, 0, 0);
+  // Position cube AWAY from camera (negative Z in AR camera space)
+  testCube.position.set(0, 0, -0.5);
   anchor.group.add(testCube);
   
   // Add coordinate axes helper to see orientation
-  const axesHelper = new THREE.AxesHelper(2);
+  const axesHelper = new THREE.AxesHelper(0.3);
+  axesHelper.position.set(0, 0, -0.5);
   anchor.group.add(axesHelper);
   
-  logDebug("LARGE RED CUBE added (1.0 size) at origin", "success");
-  logDebug("Axes helper added: Red=X, Green=Y, Blue=Z", "info");
+  logDebug("RED CUBE added at Z=-0.5 (in front of camera)", "success");
+  logDebug("Axes helper added at same position", "info");
   
   // Add a green sphere for comparison
   const sphere = new THREE.Mesh(
-    new THREE.SphereGeometry(0.5, 32, 32),
-    new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.5 })
+    new THREE.SphereGeometry(0.2, 32, 32),
+    new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1.0 })
   );
-  sphere.position.set(0, 1, 0);
+  sphere.position.set(0, 0.3, -0.5);
   anchor.group.add(sphere);
-  logDebug("Green sphere added at Y=1 for reference", "info");
+  logDebug("Green sphere added above cube", "info");
 
   // Tracking callbacks
   anchor.onTargetFound = () => {
@@ -265,6 +267,7 @@ async function startAR() {
     logDebug(`Target found! Anchor visible: ${anchor.group.visible}`, "success");
     logDebug(`Anchor has ${anchor.group.children.length} children`, "info");
     logDebug(`Cube scale: ${testCube.scale.x}, visible: ${testCube.visible}`, "info");
+    logDebug(`Cube position: (${testCube.position.x}, ${testCube.position.y}, ${testCube.position.z})`, "info");
     logDebug(`Scene children: ${scene.children.length}`, "info");
     
     // Log camera info
