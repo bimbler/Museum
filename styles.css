@@ -70,6 +70,31 @@ html, body {
   text-align: center;
 }
 
+/* Settings button - Top left */
+.settings-btn {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50%;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  transition: transform 0.2s ease;
+}
+
+.settings-btn:active {
+  transform: scale(0.95);
+}
+
 /* Version indicator */
 .version {
   position: fixed;

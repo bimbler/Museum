@@ -6,6 +6,7 @@ const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const statusBar = document.getElementById("statusBar");
 const debugInfo = document.getElementById("debugInfo");
+const settingsBtn = document.getElementById("settingsBtn");
 
 const infoPanel = document.getElementById("infoPanel");
 const closePanel = document.getElementById("closePanel");
@@ -125,6 +126,15 @@ function setStatus(msg) { statusBar.textContent = msg; }
 function showPanel() { infoPanel.classList.add("visible"); }
 function hidePanel() { infoPanel.classList.remove("visible"); }
 
+// Settings button - toggle panel
+settingsBtn.addEventListener("click", () => {
+  if (infoPanel.classList.contains("visible")) {
+    hidePanel();
+  } else {
+    showPanel();
+  }
+});
+
 // Close panel button
 closePanel.addEventListener("click", hidePanel);
 
@@ -135,7 +145,7 @@ toggleSpinBtn.addEventListener("click", () => {
 
 resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.set(0, 0, 0);
+  model.rotation.set(Math.PI / 4, 0, 0); // Reset to 45 degree tilt
   model.position.set(0, 0, -0.5);
   model.scale.setScalar(0.5);
   setStatus("Reset to default position");
@@ -205,8 +215,10 @@ async function startAR() {
     logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
     
     // Position model in visible range (away from camera near plane)
+    // Set default tilt to 45 degrees (0.785 radians)
     model.scale.setScalar(0.5);
     model.position.set(0, 0, -0.5);
+    model.rotation.x = Math.PI / 4; // 45 degrees tilt
     
     // Optimize materials
     model.traverse((node) => {
@@ -230,13 +242,12 @@ async function startAR() {
   // Tracking callbacks
   anchor.onTargetFound = () => {
     setStatus("Target found");
-    showPanel();
     logDebug("Target found - Buddha visible", "success");
   };
 
   anchor.onTargetLost = () => {
     setStatus("Scanning…");
-    hidePanel();
+    logDebug("Target lost", "success");
   };
 
   // Start
