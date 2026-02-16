@@ -14,38 +14,34 @@ const infoPanel = document.getElementById("infoPanel");
 const closePanel = document.getElementById("closePanel");
 const toggleSpinBtn = document.getElementById("toggleSpin");
 const resetPoseBtn = document.getElementById("resetPose");
-const loadBuddhaBtn = document.getElementById("loadBuddha");
 
-// Debug control buttons
-const scaleUpBtn = document.getElementById("scaleUp");
-const scaleDownBtn = document.getElementById("scaleDown");
+// Position control buttons
 const moveUpBtn = document.getElementById("moveUp");
 const moveDownBtn = document.getElementById("moveDown");
+const moveLeftBtn = document.getElementById("moveLeft");
+const moveRightBtn = document.getElementById("moveRight");
 const moveForwardBtn = document.getElementById("moveForward");
 const moveBackBtn = document.getElementById("moveBack");
 
+// Rotation control buttons
+const rotateLeftBtn = document.getElementById("rotateLeft");
+const rotateRightBtn = document.getElementById("rotateRight");
+const tiltUpBtn = document.getElementById("tiltUp");
+const tiltDownBtn = document.getElementById("tiltDown");
+
+// Scale control buttons
+const scaleUpBtn = document.getElementById("scaleUp");
+const scaleDownBtn = document.getElementById("scaleDown");
+
 let spinning = true;
 let model = null;
-let testCube = null;
 let anchor = null;
 let debugLogs = [];
 
-// Debug logger that shows in UI
+// Debug logger that shows in UI (hidden by default in v1.0)
 function logDebug(message, type = 'info') {
   console.log(message);
-  debugLogs.push({ message, type, time: new Date().toLocaleTimeString() });
-  
-  const entry = document.createElement('div');
-  entry.className = `log-entry ${type}`;
-  entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-  debugInfo.appendChild(entry);
-  debugInfo.scrollTop = debugInfo.scrollHeight;
-  debugInfo.classList.add('visible');
-  
-  // Keep only last 20 logs
-  if (debugInfo.children.length > 20) {
-    debugInfo.removeChild(debugInfo.firstChild);
-  }
+  // Debug panel is hidden in production v1.0
 }
 
 // Debug controls
@@ -172,12 +168,11 @@ toggleSpinBtn.addEventListener("click", () => {
 });
 
 resetPoseBtn.addEventListener("click", () => {
-  const obj = model || testCube;
-  if (!obj) return;
-  obj.rotation.set(0, 0, 0);
-  obj.position.set(0, 0, 0);
-  obj.scale.setScalar(1.0);
-  logDebug("Reset to scale: 1.0, pos: (0,0,0)", "info");
+  if (!model) return;
+  model.rotation.set(0, 0, 0);
+  model.position.set(0, 0, -0.5);
+  model.scale.setScalar(0.5);
+  setStatus("Reset to default position");
 });
 
 // Boot AR only after user gesture
@@ -265,51 +260,27 @@ async function startAR() {
 
   // Tracking callbacks
   anchor.onTargetFound = () => {
-    setStatus("🎯 Target found - see LARGE RED CUBE on target?");
+    setStatus("Target found");
     showPanel();
-    logDebug(`Target found! Anchor visible: ${anchor.group.visible}`, "success");
-    logDebug(`Anchor has ${anchor.group.children.length} children`, "info");
-    logDebug(`Cube scale: ${testCube.scale.x}, visible: ${testCube.visible}`, "info");
-    logDebug(`Cube position: (${testCube.position.x}, ${testCube.position.y}, ${testCube.position.z})`, "info");
-    logDebug(`Scene children: ${scene.children.length}`, "info");
-    
-    // Log camera info
-    logDebug(`Camera pos: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`, "info");
-    logDebug(`Camera near: ${camera.near}, far: ${camera.far}`, "info");
-    
-    // Check if objects are in view frustum
-    camera.updateMatrixWorld();
-    const frustum = new THREE.Frustum();
-    frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
-    
-    testCube.updateMatrixWorld();
-    const inView = frustum.containsPoint(testCube.getWorldPosition(new THREE.Vector3()));
-    logDebug(`Cube in camera frustum: ${inView}`, inView ? "success" : "error");
+    logDebug("Target found - Buddha visible", "success");
   };
 
   anchor.onTargetLost = () => {
     setStatus("Scanning…");
     hidePanel();
-    logDebug("Target lost", "info");
   };
 
   // Start
   setStatus("Starting AR…");
   logDebug("Starting MindAR...", "info");
   await mindarThree.start();
-  setStatus("📷 Scanning for target…");
-  logDebug("MindAR started - point at target to see RED CUBE", "success");
+  setStatus("Scanning…");
+  logDebug("MindAR started - point at target", "success");
 
   // Render loop
   renderer.setAnimationLoop(() => {
-    // Spin whichever object is active
-    if (spinning) {
-      if (model) {
-        model.rotation.y += 0.01;
-      } else if (testCube) {
-        testCube.rotation.y += 0.02;
-        testCube.rotation.x += 0.01;
-      }
+    if (model && spinning) {
+      model.rotation.y += 0.01;
     }
     renderer.render(scene, camera);
   });

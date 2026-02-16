@@ -35,10 +35,10 @@
   <div id="statusBar" class="status">Ready.</div>
   
   <!-- Version indicator -->
-  <div class="version">v0.9</div>
+  <div class="version">v1.0</div>
 
-  <!-- Debug info panel -->
-  <div id="debugInfo" class="debug-info"></div>
+  <!-- Debug info panel - hidden by default in production -->
+  <div id="debugInfo" class="debug-info" style="display: none;"></div>
 
   <!-- Side info panel -->
   <aside id="infoPanel" class="panel">
@@ -53,19 +53,32 @@
       <div class="panel-actions">
         <button id="toggleSpin" class="secondary">Toggle Spin</button>
         <button id="resetPose" class="secondary">Reset Pose</button>
-        <button id="loadBuddha" class="secondary" style="background: #4dabf7;">Load Buddha Model</button>
       </div>
       
-      <!-- Debug controls -->
+      <!-- Position & Rotation controls -->
       <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12);">
-        <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Debug Controls:</p>
-        <div style="display: grid; gap: 8px;">
-          <button id="scaleUp" class="secondary" style="font-size: 11px; padding: 6px 10px;">Scale +0.2</button>
-          <button id="scaleDown" class="secondary" style="font-size: 11px; padding: 6px 10px;">Scale -0.2</button>
-          <button id="moveUp" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Up</button>
-          <button id="moveDown" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Down</button>
-          <button id="moveForward" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Forward</button>
-          <button id="moveBack" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Back</button>
+        <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Position Controls:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px;">
+          <button id="moveUp" class="secondary" style="font-size: 11px; padding: 6px 8px;">↑ Up</button>
+          <button id="moveDown" class="secondary" style="font-size: 11px; padding: 6px 8px;">↓ Down</button>
+          <button id="moveLeft" class="secondary" style="font-size: 11px; padding: 6px 8px;">← Left</button>
+          <button id="moveRight" class="secondary" style="font-size: 11px; padding: 6px 8px;">→ Right</button>
+          <button id="moveForward" class="secondary" style="font-size: 11px; padding: 6px 8px;">+ Closer</button>
+          <button id="moveBack" class="secondary" style="font-size: 11px; padding: 6px 8px;">- Farther</button>
+        </div>
+        
+        <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Rotation Controls:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px;">
+          <button id="rotateLeft" class="secondary" style="font-size: 11px; padding: 6px 8px;">↶ Rotate Left</button>
+          <button id="rotateRight" class="secondary" style="font-size: 11px; padding: 6px 8px;">↷ Rotate Right</button>
+          <button id="tiltUp" class="secondary" style="font-size: 11px; padding: 6px 8px;">⟲ Tilt Up</button>
+          <button id="tiltDown" class="secondary" style="font-size: 11px; padding: 6px 8px;">⟳ Tilt Down</button>
+        </div>
+        
+        <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Scale Controls:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+          <button id="scaleUp" class="secondary" style="font-size: 11px; padding: 6px 8px;">+ Bigger</button>
+          <button id="scaleDown" class="secondary" style="font-size: 11px; padding: 6px 8px;">- Smaller</button>
         </div>
       </div>
     </div>
