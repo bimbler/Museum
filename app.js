@@ -30,8 +30,8 @@ toggleSpinBtn.addEventListener("click", () => {
 resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.set(0, 0, 0);
-  model.position.set(0, -0.2, 0);
-  model.scale.setScalar(0.8);
+  model.position.set(0, 0, 0);
+  model.scale.setScalar(1.0);
 });
 
 // Boot AR only after user gesture
@@ -78,35 +78,72 @@ async function startAR() {
   // Anchor 0 = first target in your .mind file
   const anchor = mindarThree.addAnchor(0);
 
+  // Add a test cube first to verify rendering works
+  const testCube = new THREE.Mesh(
+    new THREE.BoxGeometry(0.3, 0.3, 0.3),
+    new THREE.MeshStandardMaterial({ color: 0xff0000 })
+  );
+  testCube.position.set(0, 0, 0);
+  anchor.group.add(testCube);
+  console.log("Test cube added to anchor");
+
   // Load GLB
   setStatus("Loading model…");
   const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync("./assets/buddha.glb");
-  model = gltf.scene;
-
-  // Scale up for better visibility
-  model.scale.setScalar(0.8);
-  model.position.set(0, -0.2, 0);
   
-  // Ensure model materials are visible
-  model.traverse((node) => {
-    if (node.isMesh) {
-      node.material.needsUpdate = true;
-      // Make sure materials respond to light
-      if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
-        node.material.metalness = 0.3;
-        node.material.roughness = 0.7;
+  try {
+    const gltf = await loader.loadAsync("./assets/buddha.glb");
+    model = gltf.scene;
+    
+    console.log("GLB loaded successfully", model);
+    console.log("Model children:", model.children.length);
+    console.log("Model bounding box:");
+    
+    // Calculate bounding box to understand model size
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    console.log("Model size:", size);
+    
+    // Scale up for better visibility
+    model.scale.setScalar(1.0);
+    model.position.set(0, 0, 0);
+    
+    // Ensure model materials are visible
+    model.traverse((node) => {
+      if (node.isMesh) {
+        console.log("Found mesh:", node.name, "Material:", node.material.type);
+        node.material.needsUpdate = true;
+        // Make sure materials respond to light
+        if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
+          node.material.metalness = 0.3;
+          node.material.roughness = 0.7;
+        }
       }
-    }
-  });
+    });
 
-  anchor.group.add(model);
+    anchor.group.add(model);
+    console.log("Model added to anchor group");
+    
+    // Remove test cube once model is loaded
+    anchor.group.remove(testCube);
+    
+  } catch (error) {
+    console.error("Failed to load GLB:", error);
+    setStatus("Failed to load model");
+  }
 
   // Tracking callbacks
   anchor.onTargetFound = () => {
     setStatus("Target found");
     showPanel();
-    console.log("Target found - model should be visible");
+    console.log("Target found - anchor visible:", anchor.group.visible);
+    console.log("Anchor children count:", anchor.group.children.length);
+    if (model) {
+      console.log("Model visible:", model.visible);
+      console.log("Model scale:", model.scale);
+      console.log("Model position:", model.position);
+    }
   };
 
   anchor.onTargetLost = () => {
