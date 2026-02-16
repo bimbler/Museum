@@ -229,32 +229,56 @@ async function startAR() {
   anchor = mindarThree.addAnchor(0);
   logDebug("Anchor created", "success");
 
-  // Add a test cube - this is what you'll see first
+  // Add a test cube - this is what you'll see first - MAKE IT BIG
   testCube = new THREE.Mesh(
-    new THREE.BoxGeometry(0.2, 0.2, 0.2),
+    new THREE.BoxGeometry(1.0, 1.0, 1.0),  // Much bigger - 1 meter cube
     new THREE.MeshStandardMaterial({ 
       color: 0xff0000, 
       emissive: 0xff0000, 
-      emissiveIntensity: 0.8 
+      emissiveIntensity: 1.0,
+      wireframe: false
     })
   );
   testCube.position.set(0, 0, 0);
   anchor.group.add(testCube);
-  logDebug("RED CUBE added (0.2 size) - you should see this when target found", "success");
-  logDebug("Use 'Load Buddha Model' button to replace cube with Buddha", "info");
+  
+  // Add coordinate axes helper to see orientation
+  const axesHelper = new THREE.AxesHelper(2);
+  anchor.group.add(axesHelper);
+  
+  logDebug("LARGE RED CUBE added (1.0 size) at origin", "success");
+  logDebug("Axes helper added: Red=X, Green=Y, Blue=Z", "info");
+  
+  // Add a green sphere for comparison
+  const sphere = new THREE.Mesh(
+    new THREE.SphereGeometry(0.5, 32, 32),
+    new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 0.5 })
+  );
+  sphere.position.set(0, 1, 0);
+  anchor.group.add(sphere);
+  logDebug("Green sphere added at Y=1 for reference", "info");
 
   // Tracking callbacks
   anchor.onTargetFound = () => {
-    setStatus("🎯 Target found - see the cube?");
+    setStatus("🎯 Target found - see LARGE RED CUBE on target?");
     showPanel();
     logDebug(`Target found! Anchor visible: ${anchor.group.visible}`, "success");
     logDebug(`Anchor has ${anchor.group.children.length} children`, "info");
-    if (testCube) {
-      logDebug(`Cube pos: (${testCube.position.x}, ${testCube.position.y}, ${testCube.position.z})`, "info");
-    }
-    if (model) {
-      logDebug(`Model pos: (${model.position.x.toFixed(2)}, ${model.position.y.toFixed(2)}, ${model.position.z.toFixed(2)})`, "info");
-    }
+    logDebug(`Cube scale: ${testCube.scale.x}, visible: ${testCube.visible}`, "info");
+    logDebug(`Scene children: ${scene.children.length}`, "info");
+    
+    // Log camera info
+    logDebug(`Camera pos: (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)})`, "info");
+    logDebug(`Camera near: ${camera.near}, far: ${camera.far}`, "info");
+    
+    // Check if objects are in view frustum
+    camera.updateMatrixWorld();
+    const frustum = new THREE.Frustum();
+    frustum.setFromProjectionMatrix(new THREE.Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
+    
+    testCube.updateMatrixWorld();
+    const inView = frustum.containsPoint(testCube.getWorldPosition(new THREE.Vector3()));
+    logDebug(`Cube in camera frustum: ${inView}`, inView ? "success" : "error");
   };
 
   anchor.onTargetLost = () => {
