@@ -12,6 +12,14 @@ const closePanel = document.getElementById("closePanel");
 const toggleSpinBtn = document.getElementById("toggleSpin");
 const resetPoseBtn = document.getElementById("resetPose");
 
+// Debug control buttons
+const scaleUpBtn = document.getElementById("scaleUp");
+const scaleDownBtn = document.getElementById("scaleDown");
+const moveUpBtn = document.getElementById("moveUp");
+const moveDownBtn = document.getElementById("moveDown");
+const moveForwardBtn = document.getElementById("moveForward");
+const moveBackBtn = document.getElementById("moveBack");
+
 let spinning = true;
 let model = null;
 let debugLogs = [];
@@ -34,6 +42,47 @@ function logDebug(message, type = 'info') {
   }
 }
 
+// Debug controls
+scaleUpBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.scale.x += 0.2;
+  model.scale.y += 0.2;
+  model.scale.z += 0.2;
+  logDebug(`Scale: ${model.scale.x.toFixed(2)}`, "info");
+});
+
+scaleDownBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.scale.x = Math.max(0.1, model.scale.x - 0.2);
+  model.scale.y = Math.max(0.1, model.scale.y - 0.2);
+  model.scale.z = Math.max(0.1, model.scale.z - 0.2);
+  logDebug(`Scale: ${model.scale.x.toFixed(2)}`, "info");
+});
+
+moveUpBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.position.y += 0.1;
+  logDebug(`Position Y: ${model.position.y.toFixed(2)}`, "info");
+});
+
+moveDownBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.position.y -= 0.1;
+  logDebug(`Position Y: ${model.position.y.toFixed(2)}`, "info");
+});
+
+moveForwardBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.position.z += 0.1;
+  logDebug(`Position Z: ${model.position.z.toFixed(2)}`, "info");
+});
+
+moveBackBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.position.z -= 0.1;
+  logDebug(`Position Z: ${model.position.z.toFixed(2)}`, "info");
+});
+
 // UI helpers
 function setStatus(msg) { statusBar.textContent = msg; }
 function showPanel() { infoPanel.classList.add("visible"); }
@@ -51,7 +100,8 @@ resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.set(0, 0, 0);
   model.position.set(0, 0, 0);
-  model.scale.setScalar(1.0);
+  model.scale.setScalar(0.5);
+  logDebug("Reset to scale: 0.5, pos: (0,0,0)", "info");
 });
 
 // Boot AR only after user gesture
@@ -108,12 +158,12 @@ async function startAR() {
 
   // Add a test cube first to verify rendering works
   const testCube = new THREE.Mesh(
-    new THREE.BoxGeometry(0.3, 0.3, 0.3),
-    new THREE.MeshStandardMaterial({ color: 0xff0000 })
+    new THREE.BoxGeometry(0.1, 0.1, 0.1),
+    new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 0.5 })
   );
   testCube.position.set(0, 0, 0);
   anchor.group.add(testCube);
-  logDebug("Test RED CUBE added - you should see this when target found", "info");
+  logDebug("Test RED CUBE added at (0,0,0) size 0.1 - should be visible when target found", "info");
 
   // Load GLB
   setStatus("Loading model…");
@@ -132,8 +182,8 @@ async function startAR() {
     box.getSize(size);
     logDebug(`Model size: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`, "info");
     
-    // Scale up for better visibility
-    model.scale.setScalar(1.0);
+    // Scale down to a more reasonable size
+    model.scale.setScalar(0.5);
     model.position.set(0, 0, 0);
     
     // Count meshes
@@ -155,9 +205,8 @@ async function startAR() {
     anchor.group.add(model);
     logDebug("Buddha model added to anchor", "success");
     
-    // Remove test cube once model is loaded
-    anchor.group.remove(testCube);
-    logDebug("Test cube removed", "info");
+    // DON'T remove test cube - keep both visible for debugging
+    logDebug("Both cube and buddha should now be visible", "info");
     
   } catch (error) {
     logDebug(`Failed to load GLB: ${error.message}`, "error");
@@ -170,7 +219,9 @@ async function startAR() {
     showPanel();
     logDebug(`Target found! Anchor visible: ${anchor.group.visible}`, "success");
     logDebug(`Anchor has ${anchor.group.children.length} children`, "info");
+    logDebug(`Camera near: ${camera.near}, far: ${camera.far}`, "info");
     if (model) {
+      logDebug(`Model pos: (${model.position.x.toFixed(2)}, ${model.position.y.toFixed(2)}, ${model.position.z.toFixed(2)})`, "info");
       logDebug(`Model visible: ${model.visible}, scale: ${model.scale.x}`, "info");
     }
   };

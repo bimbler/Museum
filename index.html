@@ -33,7 +33,7 @@
   <div id="statusBar" class="status">Ready.</div>
   
   <!-- Version indicator -->
-  <div class="version">v0.5</div>
+  <div class="version">v0.6</div>
 
   <!-- Debug info panel -->
   <div id="debugInfo" class="debug-info"></div>
@@ -51,6 +51,19 @@
       <div class="panel-actions">
         <button id="toggleSpin" class="secondary">Toggle Spin</button>
         <button id="resetPose" class="secondary">Reset Pose</button>
+      </div>
+      
+      <!-- Debug controls -->
+      <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.12);">
+        <p style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">Debug Controls:</p>
+        <div style="display: grid; gap: 8px;">
+          <button id="scaleUp" class="secondary" style="font-size: 11px; padding: 6px 10px;">Scale +0.2</button>
+          <button id="scaleDown" class="secondary" style="font-size: 11px; padding: 6px 10px;">Scale -0.2</button>
+          <button id="moveUp" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Up</button>
+          <button id="moveDown" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Down</button>
+          <button id="moveForward" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Forward</button>
+          <button id="moveBack" class="secondary" style="font-size: 11px; padding: 6px 10px;">Move Back</button>
+        </div>
       </div>
     </div>
   </aside>
