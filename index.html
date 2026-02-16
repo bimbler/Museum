@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>Museum AR</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <!-- Start overlay (iOS needs a user gesture to start camera) -->
+  <div id="startOverlay" class="overlay">
+    <div class="overlay-card">
+      <h1>Museum AR</h1>
+      <p>Point your camera at the exhibit card image to view the statue.</p>
+      <button id="startBtn" class="primary">Start AR</button>
+      <p class="tiny">
+        Tip: Good lighting + matte print helps tracking.
+      </p>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="statusBar" class="status">Ready.</div>
+
+  <!-- Side info panel -->
+  <aside id="infoPanel" class="panel">
+    <div class="panel-header">
+      <h2>Buddha</h2>
+      <button id="closePanel" class="ghost">✕</button>
+    </div>
+    <div class="panel-body">
+      <p id="infoText">
+        Exhibit information goes here. Add provenance, material, era, story, etc.
+      </p>
+      <div class="panel-actions">
+        <button id="toggleSpin" class="secondary">Toggle Spin</button>
+        <button id="resetPose" class="secondary">Reset Pose</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MindAR / Three app -->
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
