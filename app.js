@@ -163,7 +163,7 @@ async function startAR() {
   logDebug("Creating MindARThree instance...", "info");
   
   const mindarThree = new MindARThree({
-    container: document.body,
+    container: document.querySelector("#container"),
     imageTargetSrc: "./assets/targets.mind",
     uiScanning: "no",
     uiLoading: "no",
