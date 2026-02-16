@@ -2,9 +2,6 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MindARThree } from "mindar-image-three";
 
-// Resolve asset URLs from this script's location so loading works with any server path or file://
-const getAssetUrl = (path) => new URL(path, import.meta.url).href;
-
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const statusBar = document.getElementById("statusBar");
@@ -44,114 +41,83 @@ function logDebug(message, type = 'info') {
   // Debug panel is hidden in production v1.0
 }
 
-// Debug controls
-scaleUpBtn.addEventListener("click", () => {
-  const obj = model || testCube;
-  if (!obj) return;
-  obj.scale.x += 0.2;
-  obj.scale.y += 0.2;
-  obj.scale.z += 0.2;
-  logDebug(`Scale: ${obj.scale.x.toFixed(2)}`, "info");
-});
-
-scaleDownBtn.addEventListener("click", () => {
-  const obj = model || testCube;
-  if (!obj) return;
-  obj.scale.x = Math.max(0.1, obj.scale.x - 0.2);
-  obj.scale.y = Math.max(0.1, obj.scale.y - 0.2);
-  obj.scale.z = Math.max(0.1, obj.scale.z - 0.2);
-  logDebug(`Scale: ${obj.scale.x.toFixed(2)}`, "info");
-});
-
+// Position controls
 moveUpBtn.addEventListener("click", () => {
-  const obj = model || testCube;
-  if (!obj) return;
-  obj.position.y += 0.1;
-  logDebug(`Position Y: ${obj.position.y.toFixed(2)}`, "info");
+  if (!model) return;
+  model.position.y += 0.05;
+  setStatus(`Position Y: ${model.position.y.toFixed(2)}`);
 });
 
 moveDownBtn.addEventListener("click", () => {
-  const obj = model || testCube;
-  if (!obj) return;
-  obj.position.y -= 0.1;
-  logDebug(`Position Y: ${obj.position.y.toFixed(2)}`, "info");
+  if (!model) return;
+  model.position.y -= 0.05;
+  setStatus(`Position Y: ${model.position.y.toFixed(2)}`);
+});
+
+moveLeftBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.position.x -= 0.05;
+  setStatus(`Position X: ${model.position.x.toFixed(2)}`);
+});
+
+moveRightBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.position.x += 0.05;
+  setStatus(`Position X: ${model.position.x.toFixed(2)}`);
 });
 
 moveForwardBtn.addEventListener("click", () => {
-  const obj = model || testCube;
-  if (!obj) return;
-  obj.position.z += 0.1;
-  logDebug(`Position Z: ${obj.position.z.toFixed(2)}`, "info");
+  if (!model) return;
+  model.position.z -= 0.05;
+  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
 });
 
 moveBackBtn.addEventListener("click", () => {
-  const obj = model || testCube;
-  if (!obj) return;
-  obj.position.z -= 0.1;
-  logDebug(`Position Z: ${obj.position.z.toFixed(2)}`, "info");
+  if (!model) return;
+  model.position.z += 0.05;
+  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
 });
 
-// Load Buddha button
-loadBuddhaBtn.addEventListener("click", async () => {
-  if (model) {
-    logDebug("Buddha already loaded", "info");
-    return;
-  }
-  
-  loadBuddhaBtn.disabled = true;
-  loadBuddhaBtn.textContent = "Loading...";
-  logDebug("Starting Buddha model load...", "info");
-  
-  try {
-    const loader = new GLTFLoader();
-    const gltf = await loader.loadAsync(getAssetUrl("./assets/buddha.glb"));
-    model = gltf.scene;
-    
-    logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
-    
-    // Calculate bounding box
-    const box = new THREE.Box3().setFromObject(model);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    logDebug(`Model size: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`, "info");
-    
-    // Start at same scale as cube, in front of target (Z=0.5)
-    model.scale.setScalar(1.0);
-    model.position.set(0, 0, 0.5);
-    
-    // Count meshes and optimize materials
-    let meshCount = 0;
-    model.traverse((node) => {
-      if (node.isMesh) {
-        meshCount++;
-        node.material.needsUpdate = true;
-        if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
-          node.material.metalness = 0.3;
-          node.material.roughness = 0.7;
-        }
-      }
-    });
-    
-    logDebug(`Found ${meshCount} meshes in model`, "success");
-    
-    // Remove test cube and add Buddha
-    if (testCube && anchor) {
-      anchor.group.remove(testCube);
-      logDebug("Test cube removed", "info");
-    }
-    
-    if (anchor) {
-      anchor.group.add(model);
-      logDebug("Buddha model added to anchor - should be visible now!", "success");
-    }
-    
-    loadBuddhaBtn.textContent = "✓ Buddha Loaded";
-    
-  } catch (error) {
-    logDebug(`Failed to load GLB: ${error.message}`, "error");
-    loadBuddhaBtn.disabled = false;
-    loadBuddhaBtn.textContent = "Retry Load Buddha";
-  }
+// Rotation controls
+rotateLeftBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.rotation.y += 0.1;
+  setStatus(`Rotation Y: ${(model.rotation.y * 57.3).toFixed(0)}°`);
+});
+
+rotateRightBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.rotation.y -= 0.1;
+  setStatus(`Rotation Y: ${(model.rotation.y * 57.3).toFixed(0)}°`);
+});
+
+tiltUpBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.rotation.x += 0.1;
+  setStatus(`Tilt X: ${(model.rotation.x * 57.3).toFixed(0)}°`);
+});
+
+tiltDownBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.rotation.x -= 0.1;
+  setStatus(`Tilt X: ${(model.rotation.x * 57.3).toFixed(0)}°`);
+});
+
+// Scale controls
+scaleUpBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.scale.x += 0.1;
+  model.scale.y += 0.1;
+  model.scale.z += 0.1;
+  setStatus(`Scale: ${model.scale.x.toFixed(2)}`);
+});
+
+scaleDownBtn.addEventListener("click", () => {
+  if (!model) return;
+  model.scale.x = Math.max(0.1, model.scale.x - 0.1);
+  model.scale.y = Math.max(0.1, model.scale.y - 0.1);
+  model.scale.z = Math.max(0.1, model.scale.z - 0.1);
+  setStatus(`Scale: ${model.scale.x.toFixed(2)}`);
 });
 
 // UI helpers
