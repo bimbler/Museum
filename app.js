@@ -30,8 +30,8 @@ toggleSpinBtn.addEventListener("click", () => {
 resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.set(0, 0, 0);
-  model.position.set(0, -0.15, 0);
-  model.scale.setScalar(0.45);
+  model.position.set(0, -0.2, 0);
+  model.scale.setScalar(0.8);
 });
 
 // Boot AR only after user gesture
@@ -53,17 +53,27 @@ async function startAR() {
   const mindarThree = new MindARThree({
     container: document.body,
     imageTargetSrc: "./assets/targets.mind",
-    uiScanning: true,
-    uiLoading: true,
+    uiScanning: "no",  // Disable MindAR's default UI for cleaner look
+    uiLoading: "no",
   });
 
   const { renderer, scene, camera } = mindarThree;
 
+  // Ensure renderer fills the entire screen
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
   // Lights (simple + effective)
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 1.2));
-  const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-  dir.position.set(1, 2, 1);
-  scene.add(dir);
+  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+  scene.add(hemiLight);
+  
+  const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+  dirLight.position.set(1, 2, 1);
+  scene.add(dirLight);
+  
+  // Add ambient light for better visibility
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
 
   // Anchor 0 = first target in your .mind file
   const anchor = mindarThree.addAnchor(0);
@@ -74,30 +84,40 @@ async function startAR() {
   const gltf = await loader.loadAsync("./assets/buddha.glb");
   model = gltf.scene;
 
-  // Basic pose tuning (adjust to taste)
-  model.scale.setScalar(0.45);
-  model.position.set(0, -0.15, 0);
-
-  // Optional: improve look if model is too dark/bright by tweaking materials
-  // (leave as-is initially; tune after you see it on device)
+  // Scale up for better visibility
+  model.scale.setScalar(0.8);
+  model.position.set(0, -0.2, 0);
+  
+  // Ensure model materials are visible
+  model.traverse((node) => {
+    if (node.isMesh) {
+      node.material.needsUpdate = true;
+      // Make sure materials respond to light
+      if (node.material.isMeshStandardMaterial || node.material.isMeshPhysicalMaterial) {
+        node.material.metalness = 0.3;
+        node.material.roughness = 0.7;
+      }
+    }
+  });
 
   anchor.group.add(model);
 
   // Tracking callbacks
   anchor.onTargetFound = () => {
-    setStatus("Target found. Exhibit locked.");
+    setStatus("Target found");
     showPanel();
+    console.log("Target found - model should be visible");
   };
 
   anchor.onTargetLost = () => {
-    setStatus("Target lost. Point at the card again.");
+    setStatus("Scanning…");
     hidePanel();
   };
 
   // Start
-  setStatus("Starting AR session…");
+  setStatus("Starting AR…");
   await mindarThree.start();
-  setStatus("Scanning… point at the exhibit card image.");
+  setStatus("Scanning…");
 
   // Render loop
   renderer.setAnimationLoop(() => {
@@ -108,5 +128,7 @@ async function startAR() {
   // Handle resize
   window.addEventListener("resize", () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
   });
 }
