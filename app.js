@@ -2,6 +2,9 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { MindARThree } from "mindar-image-three";
 
+// Resolve asset URLs from this script's location so loading works with any server path or file://
+const getAssetUrl = (path) => new URL(path, import.meta.url).href;
+
 const startOverlay = document.getElementById("startOverlay");
 const startBtn = document.getElementById("startBtn");
 const statusBar = document.getElementById("statusBar");
@@ -105,7 +108,7 @@ loadBuddhaBtn.addEventListener("click", async () => {
   
   try {
     const loader = new GLTFLoader();
-    const gltf = await loader.loadAsync("./assets/buddha.glb");
+    const gltf = await loader.loadAsync(getAssetUrl("./assets/buddha.glb"));
     model = gltf.scene;
     
     logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
@@ -116,9 +119,9 @@ loadBuddhaBtn.addEventListener("click", async () => {
     box.getSize(size);
     logDebug(`Model size: ${size.x.toFixed(2)} x ${size.y.toFixed(2)} x ${size.z.toFixed(2)}`, "info");
     
-    // Start at same scale as cube
+    // Start at same scale as cube, in front of target (Z=0.5)
     model.scale.setScalar(1.0);
-    model.position.set(0, 0, 0);
+    model.position.set(0, 0, 0.5);
     
     // Count meshes and optimize materials
     let meshCount = 0;
@@ -197,11 +200,11 @@ startBtn.addEventListener("click", async () => {
 
 async function startAR() {
   logDebug("Creating MindARThree instance...", "info");
-  
+  // Aligned with official MindAR Three.js example: use #container (100vw×100vh), addAnchor(0), add to anchor.group, then start() + setAnimationLoop
   const mindarThree = new MindARThree({
-    container: document.body,
-    imageTargetSrc: "./assets/targets.mind",
-    uiScanning: "no",  // Disable MindAR's default UI for cleaner look
+    container: document.querySelector("#container"),
+    imageTargetSrc: getAssetUrl("./assets/targets.mind"),
+    uiScanning: "no",
     uiLoading: "no",
   });
 
@@ -239,16 +242,16 @@ async function startAR() {
       wireframe: false
     })
   );
-  // Position cube AWAY from camera (negative Z in AR camera space)
-  testCube.position.set(0, 0, -0.5);
+  // Position cube in front of target (positive Z = toward user in anchor space)
+  testCube.position.set(0, 0, 0.5);
   anchor.group.add(testCube);
   
   // Add coordinate axes helper to see orientation
   const axesHelper = new THREE.AxesHelper(0.3);
-  axesHelper.position.set(0, 0, -0.5);
+  axesHelper.position.set(0, 0, 0.5);
   anchor.group.add(axesHelper);
   
-  logDebug("RED CUBE added at Z=-0.5 (in front of camera)", "success");
+  logDebug("RED CUBE added at Z=0.5 (in front of target)", "success");
   logDebug("Axes helper added at same position", "info");
   
   // Add a green sphere for comparison
@@ -256,7 +259,7 @@ async function startAR() {
     new THREE.SphereGeometry(0.2, 32, 32),
     new THREE.MeshStandardMaterial({ color: 0x00ff00, emissive: 0x00ff00, emissiveIntensity: 1.0 })
   );
-  sphere.position.set(0, 0.3, -0.5);
+  sphere.position.set(0, 0.3, 0.5);
   anchor.group.add(sphere);
   logDebug("Green sphere added above cube", "info");
 
