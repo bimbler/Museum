@@ -341,6 +341,18 @@ async function startAR() {
     
     logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
     
+    // Center the model's pivot point
+    const box = new THREE.Box3().setFromObject(model);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    
+    // Offset all children so the center becomes the pivot
+    model.children.forEach(child => {
+      child.position.sub(center);
+    });
+    
+    logDebug(`Model centered - pivot now at geometric center`, "success");
+    
     // Position model in visible range (away from camera near plane)
     // Set rotation order to avoid gimbal lock
     model.rotation.order = 'YXZ'; // Y-axis first, then X, then Z
