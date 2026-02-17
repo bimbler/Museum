@@ -238,14 +238,23 @@ toggleSpinBtn.addEventListener("click", () => {
 
 resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.set(0, -160 * (Math.PI / 180), 0); // X=0, Y=-160 degrees
+  
+  // Reset with proper rotation order to avoid gimbal lock
+  model.rotation.order = 'YXZ';
+  model.rotation.set(0, 0, 0);
+  model.rotation.y = -160 * (Math.PI / 180);
+  model.rotation.x = 0;
+  
   model.position.set(0, 0, -0.5);
   model.scale.setScalar(1.0);
   
   // Reset cloned model on anchor1 too
   if (anchor1 && anchor1.group.children.length > 0) {
     const model1 = anchor1.group.children[0];
-    model1.rotation.set(0, -160 * (Math.PI / 180), 0);
+    model1.rotation.order = 'YXZ';
+    model1.rotation.set(0, 0, 0);
+    model1.rotation.y = -160 * (Math.PI / 180);
+    model1.rotation.x = 0;
     model1.position.set(0, 0, -0.5);
     model1.scale.setScalar(1.0);
   }
@@ -323,12 +332,18 @@ async function startAR() {
     logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
     
     // Position model in visible range (away from camera near plane)
-    // X-axis tilt at 0, Y-axis rotation at -160 degrees
-    // Scale set to 1.0
+    // Set rotation order to avoid gimbal lock
+    model.rotation.order = 'YXZ'; // Y-axis first, then X, then Z
+    
+    // Reset all angles first
+    model.rotation.set(0, 0, 0);
+    
+    // Apply rotations in order
+    model.rotation.y = -160 * (Math.PI / 180); // -160 degrees on Y-axis
+    model.rotation.x = 0; // No tilt
+    
     model.scale.setScalar(1.0);
     model.position.set(0, 0, -0.5);
-    model.rotation.x = 0; // No tilt
-    model.rotation.y = -160 * (Math.PI / 180); // -160 degrees on Y-axis
     
     // Optimize materials
     model.traverse((node) => {
