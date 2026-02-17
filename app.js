@@ -44,6 +44,50 @@ function logDebug(message, type = 'info') {
   // Debug panel is hidden in production v1.0
 }
 
+// Create 3D text label using canvas texture
+function createTextLabel(text) {
+  // Create canvas for text
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = 512;
+  canvas.height = 256;
+  
+  // Draw background
+  context.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw text
+  context.fillStyle = '#ffffff';
+  context.font = 'bold 36px Arial';
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  
+  // Handle multiline text
+  const lines = text.split('\n');
+  const lineHeight = 45;
+  const startY = (canvas.height / 2) - ((lines.length - 1) * lineHeight / 2);
+  
+  lines.forEach((line, index) => {
+    context.fillText(line, canvas.width / 2, startY + (index * lineHeight));
+  });
+  
+  // Create texture from canvas
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  
+  // Create material and mesh
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    side: THREE.DoubleSide
+  });
+  
+  const geometry = new THREE.PlaneGeometry(0.5, 0.25);
+  const mesh = new THREE.Mesh(geometry, material);
+  
+  return mesh;
+}
+
 // Position controls
 moveUpBtn.addEventListener("click", () => {
   if (!model) return;
@@ -294,11 +338,21 @@ async function startAR() {
     // Add model to both anchors
     anchor.group.add(model);
     
+    // Add text label in front of Buddha
+    const textLabel = createTextLabel("Ancient Buddha\nStatue of Peace");
+    textLabel.position.set(0, 0.8, -0.3); // Position above and in front
+    anchor.group.add(textLabel);
+    
     // Clone model for second anchor
     const model1 = model.clone();
     anchor1.group.add(model1);
     
-    logDebug("Buddha model added to both anchors", "success");
+    // Clone text label for second anchor
+    const textLabel1 = createTextLabel("Ancient Buddha\nStatue of Peace");
+    textLabel1.position.set(0, 0.8, -0.3);
+    anchor1.group.add(textLabel1);
+    
+    logDebug("Buddha model and text labels added to both anchors", "success");
     
   } catch (error) {
     logDebug(`Failed to load GLB: ${error.message}`, "error");
