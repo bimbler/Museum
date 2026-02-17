@@ -180,33 +180,29 @@ tiltDownBtn.addEventListener("click", () => {
   setStatus(`Tilt X: ${(model.rotation.x * 57.3).toFixed(0)}°`);
 });
 
-// Scale controls
+// Scale controls - use setScalar to ensure uniform scaling
 scaleUpBtn.addEventListener("click", () => {
   if (!model) return;
-  model.scale.x += 0.1;
-  model.scale.y += 0.1;
-  model.scale.z += 0.1;
+  const currentScale = model.scale.x;
+  const newScale = currentScale + 0.1;
+  model.scale.setScalar(newScale);
   if (anchor1 && anchor1.group.children.length > 0) {
     const model1 = anchor1.group.children[0];
-    model1.scale.x += 0.1;
-    model1.scale.y += 0.1;
-    model1.scale.z += 0.1;
+    model1.scale.setScalar(newScale);
   }
-  setStatus(`Scale: ${model.scale.x.toFixed(2)}`);
+  setStatus(`Scale: ${newScale.toFixed(2)}`);
 });
 
 scaleDownBtn.addEventListener("click", () => {
   if (!model) return;
-  model.scale.x = Math.max(0.1, model.scale.x - 0.1);
-  model.scale.y = Math.max(0.1, model.scale.y - 0.1);
-  model.scale.z = Math.max(0.1, model.scale.z - 0.1);
+  const currentScale = model.scale.x;
+  const newScale = Math.max(0.1, currentScale - 0.1);
+  model.scale.setScalar(newScale);
   if (anchor1 && anchor1.group.children.length > 0) {
     const model1 = anchor1.group.children[0];
-    model1.scale.x = Math.max(0.1, model1.scale.x - 0.1);
-    model1.scale.y = Math.max(0.1, model1.scale.y - 0.1);
-    model1.scale.z = Math.max(0.1, model1.scale.z - 0.1);
+    model1.scale.setScalar(newScale);
   }
-  setStatus(`Scale: ${model.scale.x.toFixed(2)}`);
+  setStatus(`Scale: ${newScale.toFixed(2)}`);
 });
 
 // UI helpers
@@ -235,14 +231,14 @@ resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.set(Math.PI / 2, -160 * (Math.PI / 180), 0); // Reset with -160 degree Y rotation
   model.position.set(0, 0, -0.5);
-  model.scale.setScalar(2.0);
+  model.scale.setScalar(1.0);
   
   // Reset cloned model on anchor1 too
   if (anchor1 && anchor1.group.children.length > 0) {
     const model1 = anchor1.group.children[0];
     model1.rotation.set(Math.PI / 2, -160 * (Math.PI / 180), 0);
     model1.position.set(0, 0, -0.5);
-    model1.scale.setScalar(2.0);
+    model1.scale.setScalar(1.0);
   }
   
   setStatus("Reset to default position");
@@ -274,8 +270,8 @@ async function startAR() {
     imageTargetSrc: "./assets/targets.mind",
     uiScanning: "no",
     uiLoading: "no",
-    filterMinCF: 0.0001,  // Smoother tracking (lower = more smoothing)
-    filterBeta: 1000,     // Reduce jitter (higher = more stable)
+    filterMinCF: 0.00001, // Much smoother tracking (lower = more smoothing)
+    filterBeta: 5000,     // Much more stable (higher = less jitter)
   });
 
   const { renderer, scene, camera } = mindarThree;
@@ -319,7 +315,8 @@ async function startAR() {
     
     // Position model in visible range (away from camera near plane)
     // Set perpendicular to image (90 degrees on X-axis) with -160 degree Y rotation
-    model.scale.setScalar(2.0);
+    // Scale set to 1.0
+    model.scale.setScalar(1.0);
     model.position.set(0, 0, -0.5);
     model.rotation.x = Math.PI / 2; // 90 degrees - perpendicular to image
     model.rotation.y = -160 * (Math.PI / 180); // -160 degrees on Y-axis
