@@ -256,9 +256,9 @@ async function startAR() {
   anchor = mindarThree.addAnchor(0);
   logDebug("Anchor 0 created", "success");
   
-  // Anchor 1 = second target (target1)
+  // Anchor 1 = second target (both compiled into targets.mind)
   anchor1 = mindarThree.addAnchor(1);
-  logDebug("Anchor 1 (target1) created", "success");
+  logDebug("Anchor 1 created - both targets ready", "success");
 
   // Load Buddha model
   setStatus("Loading model…");
