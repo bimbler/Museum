@@ -229,14 +229,14 @@ toggleSpinBtn.addEventListener("click", () => {
 
 resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.set(Math.PI / 2, -160 * (Math.PI / 180), 0); // Reset with -160 degree Y rotation
+  model.rotation.set(0, -160 * (Math.PI / 180), 0); // X=0, Y=-160 degrees
   model.position.set(0, 0, -0.5);
   model.scale.setScalar(1.0);
   
   // Reset cloned model on anchor1 too
   if (anchor1 && anchor1.group.children.length > 0) {
     const model1 = anchor1.group.children[0];
-    model1.rotation.set(Math.PI / 2, -160 * (Math.PI / 180), 0);
+    model1.rotation.set(0, -160 * (Math.PI / 180), 0);
     model1.position.set(0, 0, -0.5);
     model1.scale.setScalar(1.0);
   }
@@ -314,11 +314,11 @@ async function startAR() {
     logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
     
     // Position model in visible range (away from camera near plane)
-    // Set perpendicular to image (90 degrees on X-axis) with -160 degree Y rotation
+    // X-axis tilt at 0, Y-axis rotation at -160 degrees
     // Scale set to 1.0
     model.scale.setScalar(1.0);
     model.position.set(0, 0, -0.5);
-    model.rotation.x = Math.PI / 2; // 90 degrees - perpendicular to image
+    model.rotation.x = 0; // No tilt
     model.rotation.y = -160 * (Math.PI / 180); // -160 degrees on Y-axis
     
     // Optimize materials
@@ -335,21 +335,11 @@ async function startAR() {
     // Add model to both anchors
     anchor.group.add(model);
     
-    // Add text label in front of Buddha
-    const textLabel = createTextLabel("Ancient Buddha\nStatue of Peace");
-    textLabel.position.set(0, 0.8, -0.3); // Position above and in front
-    anchor.group.add(textLabel);
-    
     // Clone model for second anchor
     const model1 = model.clone();
     anchor1.group.add(model1);
     
-    // Clone text label for second anchor
-    const textLabel1 = createTextLabel("Ancient Buddha\nStatue of Peace");
-    textLabel1.position.set(0, 0.8, -0.3);
-    anchor1.group.add(textLabel1);
-    
-    logDebug("Buddha model and text labels added to both anchors", "success");
+    logDebug("Buddha model added to both anchors", "success");
     
   } catch (error) {
     logDebug(`Failed to load GLB: ${error.message}`, "error");
