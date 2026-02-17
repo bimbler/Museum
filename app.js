@@ -230,6 +230,8 @@ async function startAR() {
     imageTargetSrc: "./assets/targets.mind",
     uiScanning: "no",
     uiLoading: "no",
+    filterMinCF: 0.0001,  // Smoother tracking (lower = more smoothing)
+    filterBeta: 1000,     // Reduce jitter (higher = more stable)
   });
 
   const { renderer, scene, camera } = mindarThree;
