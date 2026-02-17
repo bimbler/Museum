@@ -42,6 +42,10 @@ let bobOffset = 0; // For bobbing animation
 let touchStartX = 0;
 let touchStartY = 0;
 let isTouching = false;
+let initialPinchDistance = 0;
+let initialScale = 1.0;
+let twoFingerStartX = 0;
+let twoFingerStartY = 0;
 
 // Debug logger that shows in UI (hidden by default in v1.0)
 function logDebug(message, type = 'info') {
@@ -417,44 +421,103 @@ async function startAR() {
   // Touch controls for rotating the model
   const container = document.querySelector("#container");
   
+  // Helper function to get distance between two touch points
+  function getTouchDistance(touch1, touch2) {
+    const dx = touch1.clientX - touch2.clientX;
+    const dy = touch1.clientY - touch2.clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  
+  // Helper function to get center point between two touches
+  function getTouchCenter(touch1, touch2) {
+    return {
+      x: (touch1.clientX + touch2.clientX) / 2,
+      y: (touch1.clientY + touch2.clientY) / 2
+    };
+  }
+  
   container.addEventListener("touchstart", (e) => {
     if (e.touches.length === 1) {
+      // Single finger - rotation
       isTouching = true;
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
+    } else if (e.touches.length === 2) {
+      // Two fingers - pinch/zoom and pan
+      isTouching = false; // Disable rotation
+      initialPinchDistance = getTouchDistance(e.touches[0], e.touches[1]);
+      initialScale = model ? model.scale.x : 1.0;
+      
+      const center = getTouchCenter(e.touches[0], e.touches[1]);
+      twoFingerStartX = center.x;
+      twoFingerStartY = center.y;
     }
   }, { passive: true });
 
   container.addEventListener("touchmove", (e) => {
-    if (!isTouching || e.touches.length !== 1 || !model) return;
+    if (!model) return;
     
-    const touchX = e.touches[0].clientX;
-    const touchY = e.touches[0].clientY;
-    
-    // Calculate delta
-    const deltaX = touchX - touchStartX;
-    const deltaY = touchY - touchStartY;
-    
-    // Rotate model based on swipe direction
-    // Horizontal swipe = Y-axis rotation
-    // Vertical swipe = X-axis rotation
-    const rotationSpeed = 0.01;
-    model.rotation.y += deltaX * rotationSpeed;
-    model.rotation.x -= deltaY * rotationSpeed;
-    
-    // Apply to second anchor model too
-    if (anchor1 && anchor1.group.children.length > 0) {
-      const model1 = anchor1.group.children[0];
-      model1.rotation.y += deltaX * rotationSpeed;
-      model1.rotation.x -= deltaY * rotationSpeed;
+    if (e.touches.length === 1 && isTouching) {
+      // Single finger - rotate
+      const touchX = e.touches[0].clientX;
+      const touchY = e.touches[0].clientY;
+      
+      const deltaX = touchX - touchStartX;
+      const deltaY = touchY - touchStartY;
+      
+      const rotationSpeed = 0.01;
+      model.rotation.y += deltaX * rotationSpeed;
+      model.rotation.x -= deltaY * rotationSpeed;
+      
+      if (anchor1 && anchor1.group.children.length > 0) {
+        const model1 = anchor1.group.children[0];
+        model1.rotation.y += deltaX * rotationSpeed;
+        model1.rotation.x -= deltaY * rotationSpeed;
+      }
+      
+      touchStartX = touchX;
+      touchStartY = touchY;
+      
+    } else if (e.touches.length === 2) {
+      // Two fingers - pinch to scale and drag to move
+      
+      // Handle pinch/zoom
+      const currentDistance = getTouchDistance(e.touches[0], e.touches[1]);
+      const scaleFactor = currentDistance / initialPinchDistance;
+      const newScale = Math.max(0.1, Math.min(5.0, initialScale * scaleFactor));
+      
+      model.scale.setScalar(newScale);
+      if (anchor1 && anchor1.group.children.length > 0) {
+        anchor1.group.children[0].scale.setScalar(newScale);
+      }
+      
+      // Handle two-finger drag (pan)
+      const center = getTouchCenter(e.touches[0], e.touches[1]);
+      const deltaX = (center.x - twoFingerStartX) * 0.001;
+      const deltaY = (center.y - twoFingerStartY) * 0.001;
+      
+      model.position.x += deltaX;
+      model.position.y -= deltaY; // Invert Y for natural movement
+      
+      if (anchor1 && anchor1.group.children.length > 0) {
+        const model1 = anchor1.group.children[0];
+        model1.position.x += deltaX;
+        model1.position.y -= deltaY;
+      }
+      
+      twoFingerStartX = center.x;
+      twoFingerStartY = center.y;
     }
-    
-    // Update touch start position for continuous rotation
-    touchStartX = touchX;
-    touchStartY = touchY;
   }, { passive: true });
 
-  container.addEventListener("touchend", () => {
-    isTouching = false;
+  container.addEventListener("touchend", (e) => {
+    if (e.touches.length === 0) {
+      isTouching = false;
+    } else if (e.touches.length === 1) {
+      // Reset to single finger mode
+      isTouching = true;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
   }, { passive: true });
 }
