@@ -97,59 +97,65 @@ function createTextLabel(text) {
   return mesh;
 }
 
-// Position controls
+// Position controls - use world-space movement
 moveUpBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.z -= 0.05; // Base Z position
+  const worldYAxis = new THREE.Vector3(0, 1, 0);
+  model.translateOnAxis(worldYAxis, 0.05);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].position.z -= 0.05;
+    anchor1.group.children[0].translateOnAxis(worldYAxis, 0.05);
   }
-  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
+  setStatus(`Moved up`);
 });
 
 moveDownBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.z += 0.05;
+  const worldYAxis = new THREE.Vector3(0, 1, 0);
+  model.translateOnAxis(worldYAxis, -0.05);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].position.z += 0.05;
+    anchor1.group.children[0].translateOnAxis(worldYAxis, -0.05);
   }
-  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
+  setStatus(`Moved down`);
 });
 
 moveLeftBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.x -= 0.05;
+  const worldXAxis = new THREE.Vector3(1, 0, 0);
+  model.translateOnAxis(worldXAxis, -0.05);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].position.x -= 0.05;
+    anchor1.group.children[0].translateOnAxis(worldXAxis, -0.05);
   }
-  setStatus(`Position X: ${model.position.x.toFixed(2)}`);
+  setStatus(`Moved left`);
 });
 
 moveRightBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.x += 0.05;
+  const worldXAxis = new THREE.Vector3(1, 0, 0);
+  model.translateOnAxis(worldXAxis, 0.05);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].position.x += 0.05;
+    anchor1.group.children[0].translateOnAxis(worldXAxis, 0.05);
   }
-  setStatus(`Position X: ${model.position.x.toFixed(2)}`);
+  setStatus(`Moved right`);
 });
 
 moveForwardBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.z -= 0.05;
+  const worldZAxis = new THREE.Vector3(0, 0, 1);
+  model.translateOnAxis(worldZAxis, -0.05);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].position.z -= 0.05;
+    anchor1.group.children[0].translateOnAxis(worldZAxis, -0.05);
   }
-  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
+  setStatus(`Moved closer`);
 });
 
 moveBackBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.z += 0.05;
+  const worldZAxis = new THREE.Vector3(0, 0, 1);
+  model.translateOnAxis(worldZAxis, 0.05);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].position.z += 0.05;
+    anchor1.group.children[0].translateOnAxis(worldZAxis, 0.05);
   }
-  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
+  setStatus(`Moved farther`);
 });
 
 // Rotation controls - use world-space rotation
@@ -516,18 +522,23 @@ async function startAR() {
         anchor1.group.children[0].scale.setScalar(newScale);
       }
       
-      // Handle two-finger drag (pan)
+      // Handle two-finger drag (pan) - move on WORLD axes
       const center = getTouchCenter(e.touches[0], e.touches[1]);
       const deltaX = (center.x - twoFingerStartX) * 0.001;
       const deltaY = (center.y - twoFingerStartY) * 0.001;
       
-      model.position.x += deltaX;
-      model.position.y -= deltaY; // Invert Y for natural movement
+      // Move on world X-axis (horizontal)
+      const worldXAxis = new THREE.Vector3(1, 0, 0);
+      model.translateOnAxis(worldXAxis, deltaX);
+      
+      // Move on world Y-axis (vertical)
+      const worldYAxis = new THREE.Vector3(0, 1, 0);
+      model.translateOnAxis(worldYAxis, -deltaY); // Invert for natural movement
       
       if (anchor1 && anchor1.group.children.length > 0) {
         const model1 = anchor1.group.children[0];
-        model1.position.x += deltaX;
-        model1.position.y -= deltaY;
+        model1.translateOnAxis(worldXAxis, deltaX);
+        model1.translateOnAxis(worldYAxis, -deltaY);
       }
       
       twoFingerStartX = center.x;
