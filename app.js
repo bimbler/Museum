@@ -36,7 +36,6 @@ let model = null;
 let anchor = null;
 let anchor1 = null; // Second anchor for target1
 let debugLogs = [];
-let bobOffset = 0; // For bobbing animation
 
 // Touch control variables
 let touchStartX = 0;
@@ -432,10 +431,6 @@ async function startAR() {
 
   // Render loop with additional smoothing
   renderer.setAnimationLoop(() => {
-    // Smooth bobbing animation using sine wave
-    bobOffset += 0.02;
-    const bobAmount = Math.sin(bobOffset) * 0.03;
-    
     if (model && spinning) {
       model.rotation.y += 0.01;
     }
@@ -457,15 +452,9 @@ async function startAR() {
       targetQuaternion.copy(model.quaternion);
     }
     
-    // Apply bobbing
-    if (model) {
-      model.position.y += bobAmount;
-    }
-    
-    // Apply bobbing to cloned model on anchor1
+    // Apply to cloned model on anchor1
     if (anchor1 && anchor1.group.children.length > 0) {
       const model1 = anchor1.group.children[0];
-      model1.position.y += bobAmount;
       if (spinning) {
         model1.rotation.y += 0.01;
       }
