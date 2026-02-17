@@ -189,14 +189,14 @@ toggleSpinBtn.addEventListener("click", () => {
 
 resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.set(Math.PI / 4, 0, 0); // Reset to 45 degree tilt
+  model.rotation.set(-Math.PI / 2, 0, 0); // Reset to perpendicular, facing camera
   model.position.set(0, 0, -0.5);
   model.scale.setScalar(2.0);
   
   // Reset cloned model on anchor1 too
   if (anchor1 && anchor1.group.children.length > 0) {
     const model1 = anchor1.group.children[0];
-    model1.rotation.set(Math.PI / 4, 0, 0);
+    model1.rotation.set(-Math.PI / 2, 0, 0);
     model1.position.set(0, 0, -0.5);
     model1.scale.setScalar(2.0);
   }
@@ -272,10 +272,10 @@ async function startAR() {
     logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
     
     // Position model in visible range (away from camera near plane)
-    // Set default tilt to 45 degrees (0.785 radians) and scale to 2
+    // Set perpendicular to image (90 degrees on X-axis) facing camera
     model.scale.setScalar(2.0);
     model.position.set(0, 0, -0.5);
-    model.rotation.x = Math.PI / 4; // 45 degrees tilt
+    model.rotation.x = -Math.PI / 2; // 90 degrees - perpendicular to image, facing camera
     
     // Optimize materials
     model.traverse((node) => {
