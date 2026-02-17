@@ -31,10 +31,12 @@ const tiltDownBtn = document.getElementById("tiltDown");
 const scaleUpBtn = document.getElementById("scaleUp");
 const scaleDownBtn = document.getElementById("scaleDown");
 
-let spinning = true;
+let spinning = false; // No auto-rotation by default
 let model = null;
 let anchor = null;
+let anchor1 = null; // Second anchor for target1
 let debugLogs = [];
+let bobOffset = 0; // For bobbing animation
 
 // Debug logger that shows in UI (hidden by default in v1.0)
 function logDebug(message, type = 'info') {
@@ -45,37 +47,55 @@ function logDebug(message, type = 'info') {
 // Position controls
 moveUpBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.y += 0.05;
-  setStatus(`Position Y: ${model.position.y.toFixed(2)}`);
+  model.position.z -= 0.05; // Base Z position
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].position.z -= 0.05;
+  }
+  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
 });
 
 moveDownBtn.addEventListener("click", () => {
   if (!model) return;
-  model.position.y -= 0.05;
-  setStatus(`Position Y: ${model.position.y.toFixed(2)}`);
+  model.position.z += 0.05;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].position.z += 0.05;
+  }
+  setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
 });
 
 moveLeftBtn.addEventListener("click", () => {
   if (!model) return;
   model.position.x -= 0.05;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].position.x -= 0.05;
+  }
   setStatus(`Position X: ${model.position.x.toFixed(2)}`);
 });
 
 moveRightBtn.addEventListener("click", () => {
   if (!model) return;
   model.position.x += 0.05;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].position.x += 0.05;
+  }
   setStatus(`Position X: ${model.position.x.toFixed(2)}`);
 });
 
 moveForwardBtn.addEventListener("click", () => {
   if (!model) return;
   model.position.z -= 0.05;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].position.z -= 0.05;
+  }
   setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
 });
 
 moveBackBtn.addEventListener("click", () => {
   if (!model) return;
   model.position.z += 0.05;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].position.z += 0.05;
+  }
   setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
 });
 
@@ -83,24 +103,36 @@ moveBackBtn.addEventListener("click", () => {
 rotateLeftBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.y += 0.1;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].rotation.y += 0.1;
+  }
   setStatus(`Rotation Y: ${(model.rotation.y * 57.3).toFixed(0)}°`);
 });
 
 rotateRightBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.y -= 0.1;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].rotation.y -= 0.1;
+  }
   setStatus(`Rotation Y: ${(model.rotation.y * 57.3).toFixed(0)}°`);
 });
 
 tiltUpBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.x += 0.1;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].rotation.x += 0.1;
+  }
   setStatus(`Tilt X: ${(model.rotation.x * 57.3).toFixed(0)}°`);
 });
 
 tiltDownBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.x -= 0.1;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    anchor1.group.children[0].rotation.x -= 0.1;
+  }
   setStatus(`Tilt X: ${(model.rotation.x * 57.3).toFixed(0)}°`);
 });
 
@@ -110,6 +142,12 @@ scaleUpBtn.addEventListener("click", () => {
   model.scale.x += 0.1;
   model.scale.y += 0.1;
   model.scale.z += 0.1;
+  if (anchor1 && anchor1.group.children.length > 0) {
+    const model1 = anchor1.group.children[0];
+    model1.scale.x += 0.1;
+    model1.scale.y += 0.1;
+    model1.scale.z += 0.1;
+  }
   setStatus(`Scale: ${model.scale.x.toFixed(2)}`);
 });
 
@@ -118,6 +156,12 @@ scaleDownBtn.addEventListener("click", () => {
   model.scale.x = Math.max(0.1, model.scale.x - 0.1);
   model.scale.y = Math.max(0.1, model.scale.y - 0.1);
   model.scale.z = Math.max(0.1, model.scale.z - 0.1);
+  if (anchor1 && anchor1.group.children.length > 0) {
+    const model1 = anchor1.group.children[0];
+    model1.scale.x = Math.max(0.1, model1.scale.x - 0.1);
+    model1.scale.y = Math.max(0.1, model1.scale.y - 0.1);
+    model1.scale.z = Math.max(0.1, model1.scale.z - 0.1);
+  }
   setStatus(`Scale: ${model.scale.x.toFixed(2)}`);
 });
 
@@ -140,14 +184,23 @@ closePanel.addEventListener("click", hidePanel);
 
 toggleSpinBtn.addEventListener("click", () => {
   spinning = !spinning;
-  toggleSpinBtn.textContent = spinning ? "Disable Spin" : "Enable Spin";
+  toggleSpinBtn.textContent = spinning ? "Stop Spin" : "Start Spin";
 });
 
 resetPoseBtn.addEventListener("click", () => {
   if (!model) return;
   model.rotation.set(Math.PI / 4, 0, 0); // Reset to 45 degree tilt
   model.position.set(0, 0, -0.5);
-  model.scale.setScalar(0.5);
+  model.scale.setScalar(2.0);
+  
+  // Reset cloned model on anchor1 too
+  if (anchor1 && anchor1.group.children.length > 0) {
+    const model1 = anchor1.group.children[0];
+    model1.rotation.set(Math.PI / 4, 0, 0);
+    model1.position.set(0, 0, -0.5);
+    model1.scale.setScalar(2.0);
+  }
+  
   setStatus("Reset to default position");
 });
 
@@ -201,7 +254,11 @@ async function startAR() {
 
   // Anchor 0 = first target in your .mind file
   anchor = mindarThree.addAnchor(0);
-  logDebug("Anchor created", "success");
+  logDebug("Anchor 0 created", "success");
+  
+  // Anchor 1 = second target (target1)
+  anchor1 = mindarThree.addAnchor(1);
+  logDebug("Anchor 1 (target1) created", "success");
 
   // Load Buddha model
   setStatus("Loading model…");
@@ -215,8 +272,8 @@ async function startAR() {
     logDebug(`GLB loaded! Children: ${model.children.length}`, "success");
     
     // Position model in visible range (away from camera near plane)
-    // Set default tilt to 45 degrees (0.785 radians)
-    model.scale.setScalar(0.5);
+    // Set default tilt to 45 degrees (0.785 radians) and scale to 2
+    model.scale.setScalar(2.0);
     model.position.set(0, 0, -0.5);
     model.rotation.x = Math.PI / 4; // 45 degrees tilt
     
@@ -231,23 +288,40 @@ async function startAR() {
       }
     });
 
+    // Add model to both anchors
     anchor.group.add(model);
-    logDebug("Buddha model added to anchor", "success");
+    
+    // Clone model for second anchor
+    const model1 = model.clone();
+    anchor1.group.add(model1);
+    
+    logDebug("Buddha model added to both anchors", "success");
     
   } catch (error) {
     logDebug(`Failed to load GLB: ${error.message}`, "error");
     setStatus("Failed to load model");
   }
 
-  // Tracking callbacks
+  // Tracking callbacks for anchor 0
   anchor.onTargetFound = () => {
     setStatus("Target found");
-    logDebug("Target found - Buddha visible", "success");
+    logDebug("Target 0 found - Buddha visible", "success");
   };
 
   anchor.onTargetLost = () => {
     setStatus("Scanning…");
-    logDebug("Target lost", "success");
+    logDebug("Target 0 lost", "success");
+  };
+  
+  // Tracking callbacks for anchor 1
+  anchor1.onTargetFound = () => {
+    setStatus("Target 1 found");
+    logDebug("Target 1 found - Buddha visible", "success");
+  };
+
+  anchor1.onTargetLost = () => {
+    setStatus("Scanning…");
+    logDebug("Target 1 lost", "success");
   };
 
   // Start
@@ -259,9 +333,28 @@ async function startAR() {
 
   // Render loop
   renderer.setAnimationLoop(() => {
+    // Smooth bobbing animation using sine wave (ease in/out at peaks)
+    bobOffset += 0.02; // Speed of bobbing
+    const bobAmount = Math.sin(bobOffset) * 0.03; // Amplitude of 0.03 units
+    
     if (model && spinning) {
       model.rotation.y += 0.01;
     }
+    
+    // Apply bobbing to model (smooth ease at peaks due to sine wave)
+    if (model) {
+      model.position.y = bobAmount;
+    }
+    
+    // Apply bobbing to cloned model on anchor1 if it exists
+    if (anchor1 && anchor1.group.children.length > 0) {
+      const model1 = anchor1.group.children[0];
+      model1.position.y = bobAmount;
+      if (spinning) {
+        model1.rotation.y += 0.01;
+      }
+    }
+    
     renderer.render(scene, camera);
   });
 
