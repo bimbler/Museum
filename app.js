@@ -152,41 +152,45 @@ moveBackBtn.addEventListener("click", () => {
   setStatus(`Position Z: ${model.position.z.toFixed(2)}`);
 });
 
-// Rotation controls
+// Rotation controls - use world-space rotation
 rotateLeftBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.y += 0.1;
+  const worldYAxis = new THREE.Vector3(0, 1, 0);
+  model.rotateOnWorldAxis(worldYAxis, 0.1);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].rotation.y += 0.1;
+    anchor1.group.children[0].rotateOnWorldAxis(worldYAxis, 0.1);
   }
-  setStatus(`Rotation Y: ${(model.rotation.y * 57.3).toFixed(0)}°`);
+  setStatus(`Rotated left`);
 });
 
 rotateRightBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.y -= 0.1;
+  const worldYAxis = new THREE.Vector3(0, 1, 0);
+  model.rotateOnWorldAxis(worldYAxis, -0.1);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].rotation.y -= 0.1;
+    anchor1.group.children[0].rotateOnWorldAxis(worldYAxis, -0.1);
   }
-  setStatus(`Rotation Y: ${(model.rotation.y * 57.3).toFixed(0)}°`);
+  setStatus(`Rotated right`);
 });
 
 tiltUpBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.x += 0.1;
+  const worldXAxis = new THREE.Vector3(1, 0, 0);
+  model.rotateOnWorldAxis(worldXAxis, 0.1);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].rotation.x += 0.1;
+    anchor1.group.children[0].rotateOnWorldAxis(worldXAxis, 0.1);
   }
-  setStatus(`Tilt X: ${(model.rotation.x * 57.3).toFixed(0)}°`);
+  setStatus(`Tilted up`);
 });
 
 tiltDownBtn.addEventListener("click", () => {
   if (!model) return;
-  model.rotation.x -= 0.1;
+  const worldXAxis = new THREE.Vector3(1, 0, 0);
+  model.rotateOnWorldAxis(worldXAxis, -0.1);
   if (anchor1 && anchor1.group.children.length > 0) {
-    anchor1.group.children[0].rotation.x -= 0.1;
+    anchor1.group.children[0].rotateOnWorldAxis(worldXAxis, -0.1);
   }
-  setStatus(`Tilt X: ${(model.rotation.x * 57.3).toFixed(0)}°`);
+  setStatus(`Tilted down`);
 });
 
 // Scale controls - use setScalar to ensure uniform scaling
@@ -473,7 +477,7 @@ async function startAR() {
     if (!model) return;
     
     if (e.touches.length === 1 && isTouching) {
-      // Single finger - rotate
+      // Single finger - rotate on WORLD axes
       const touchX = e.touches[0].clientX;
       const touchY = e.touches[0].clientY;
       
@@ -481,13 +485,19 @@ async function startAR() {
       const deltaY = touchY - touchStartY;
       
       const rotationSpeed = 0.01;
-      model.rotation.y += deltaX * rotationSpeed;
-      model.rotation.x -= deltaY * rotationSpeed;
+      
+      // Rotate on world Y-axis (horizontal swipe)
+      const worldYAxis = new THREE.Vector3(0, 1, 0);
+      model.rotateOnWorldAxis(worldYAxis, deltaX * rotationSpeed);
+      
+      // Rotate on world X-axis (vertical swipe)
+      const worldXAxis = new THREE.Vector3(1, 0, 0);
+      model.rotateOnWorldAxis(worldXAxis, -deltaY * rotationSpeed);
       
       if (anchor1 && anchor1.group.children.length > 0) {
         const model1 = anchor1.group.children[0];
-        model1.rotation.y += deltaX * rotationSpeed;
-        model1.rotation.x -= deltaY * rotationSpeed;
+        model1.rotateOnWorldAxis(worldYAxis, deltaX * rotationSpeed);
+        model1.rotateOnWorldAxis(worldXAxis, -deltaY * rotationSpeed);
       }
       
       touchStartX = touchX;
