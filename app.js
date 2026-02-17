@@ -49,7 +49,7 @@ let twoFingerStartY = 0;
 // Smoothing variables for position/rotation
 let targetPosition = new THREE.Vector3();
 let targetQuaternion = new THREE.Quaternion();
-let smoothingFactor = 0.15; // Lower = smoother but slower response
+let smoothingFactor = 0.08; // Lower = smoother but slower response (increased from 0.15)
 
 // Debug logger that shows in UI (hidden by default in v1.0)
 function logDebug(message, type = 'info') {
