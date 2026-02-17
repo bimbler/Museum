@@ -47,6 +47,11 @@ let initialScale = 1.0;
 let twoFingerStartX = 0;
 let twoFingerStartY = 0;
 
+// Smoothing variables for position/rotation
+let targetPosition = new THREE.Vector3();
+let targetQuaternion = new THREE.Quaternion();
+let smoothingFactor = 0.15; // Lower = smoother but slower response
+
 // Debug logger that shows in UI (hidden by default in v1.0)
 function logDebug(message, type = 'info') {
   console.log(message);
@@ -381,6 +386,10 @@ async function startAR() {
     // Add model to both anchors
     anchor.group.add(model);
     
+    // Initialize smoothing targets
+    targetPosition.copy(model.position);
+    targetQuaternion.copy(model.quaternion);
+    
     // Clone model for second anchor
     const model1 = model.clone();
     anchor1.group.add(model1);
@@ -421,25 +430,42 @@ async function startAR() {
   setStatus("Scanning…");
   logDebug("MindAR started - point at target", "success");
 
-  // Render loop
+  // Render loop with additional smoothing
   renderer.setAnimationLoop(() => {
-    // Smooth bobbing animation using sine wave (ease in/out at peaks)
-    bobOffset += 0.02; // Speed of bobbing
-    const bobAmount = Math.sin(bobOffset) * 0.03; // Amplitude of 0.03 units
+    // Smooth bobbing animation using sine wave
+    bobOffset += 0.02;
+    const bobAmount = Math.sin(bobOffset) * 0.03;
     
     if (model && spinning) {
       model.rotation.y += 0.01;
     }
     
-    // Apply bobbing to model (smooth ease at peaks due to sine wave)
-    if (model) {
-      model.position.y = bobAmount;
+    // Apply additional client-side smoothing to reduce jitter
+    if (model && anchor.group.visible) {
+      // Get the anchor's world position and rotation
+      const anchorWorldPos = new THREE.Vector3();
+      const anchorWorldQuat = new THREE.Quaternion();
+      anchor.group.getWorldPosition(anchorWorldPos);
+      anchor.group.getWorldQuaternion(anchorWorldQuat);
+      
+      // Smoothly interpolate to target
+      model.position.lerp(targetPosition, smoothingFactor);
+      model.quaternion.slerp(targetQuaternion, smoothingFactor);
+      
+      // Update targets with current anchor transform
+      targetPosition.copy(model.position);
+      targetQuaternion.copy(model.quaternion);
     }
     
-    // Apply bobbing to cloned model on anchor1 if it exists
+    // Apply bobbing
+    if (model) {
+      model.position.y += bobAmount;
+    }
+    
+    // Apply bobbing to cloned model on anchor1
     if (anchor1 && anchor1.group.children.length > 0) {
       const model1 = anchor1.group.children[0];
-      model1.position.y = bobAmount;
+      model1.position.y += bobAmount;
       if (spinning) {
         model1.rotation.y += 0.01;
       }
