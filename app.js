@@ -38,6 +38,11 @@ let anchor1 = null; // Second anchor for target1
 let debugLogs = [];
 let bobOffset = 0; // For bobbing animation
 
+// Touch control variables
+let touchStartX = 0;
+let touchStartY = 0;
+let isTouching = false;
+
 // Debug logger that shows in UI (hidden by default in v1.0)
 function logDebug(message, type = 'info') {
   console.log(message);
@@ -408,4 +413,48 @@ async function startAR() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
   });
+
+  // Touch controls for rotating the model
+  const container = document.querySelector("#container");
+  
+  container.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 1) {
+      isTouching = true;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  container.addEventListener("touchmove", (e) => {
+    if (!isTouching || e.touches.length !== 1 || !model) return;
+    
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
+    
+    // Calculate delta
+    const deltaX = touchX - touchStartX;
+    const deltaY = touchY - touchStartY;
+    
+    // Rotate model based on swipe direction
+    // Horizontal swipe = Y-axis rotation
+    // Vertical swipe = X-axis rotation
+    const rotationSpeed = 0.01;
+    model.rotation.y += deltaX * rotationSpeed;
+    model.rotation.x -= deltaY * rotationSpeed;
+    
+    // Apply to second anchor model too
+    if (anchor1 && anchor1.group.children.length > 0) {
+      const model1 = anchor1.group.children[0];
+      model1.rotation.y += deltaX * rotationSpeed;
+      model1.rotation.x -= deltaY * rotationSpeed;
+    }
+    
+    // Update touch start position for continuous rotation
+    touchStartX = touchX;
+    touchStartY = touchY;
+  }, { passive: true });
+
+  container.addEventListener("touchend", () => {
+    isTouching = false;
+  }, { passive: true });
 }
