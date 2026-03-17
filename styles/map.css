@@ -1,287 +1,368 @@
 /**
- * Museum Map Page Styles - Museum Green Accents
+ * Museum Map Page - Crow-inspired Gallery Map
+ * Dark theme with golden accents; desktop sidebar, mobile bottom sheet
  */
 
-.map-page {
+/* Map page shell - dark theme for gallery map */
+.map-page.map-page-gallery {
   min-height: 100vh;
-  background: var(--bg-cream);
+  background: #181209;
+  font-family: 'EB Garamond', Georgia, serif;
+  color: #d4b483;
 }
 
-.map-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-lg) var(--spacing-3xl);
-  background: var(--bg-white);
-  border-bottom: 1px solid var(--border-subtle);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  min-height: 72px;
+.map-page.map-page-gallery .map-header {
+  background: rgba(24, 18, 9, 0.95);
+  border-bottom: 1px solid #5a3e18;
 }
 
-.map-header h1 {
-  font-size: 32px;
-  font-weight: 500;
-  letter-spacing: -0.8px;
-  color: var(--text-primary);
-  margin: 0;
-  flex: 1;
-  text-align: center;
+.map-page.map-page-gallery .map-header h1 {
+  color: #e8c87a;
+  font-family: 'Cormorant Garamond', serif;
 }
 
-.map-content {
-  padding: var(--spacing-3xl) var(--spacing-lg);
-  max-width: 1400px;
+.map-page.map-page-gallery .back-btn {
+  background: rgba(35, 24, 8, 0.8);
+  color: #e8c87a;
+  border: 1px solid #5a3e18;
+}
+
+.map-page.map-page-gallery .back-btn:hover {
+  background: rgba(54, 37, 16, 0.9);
+  color: #e8c87a;
+}
+
+/* Layout shell */
+.map-shell {
+  max-width: 1020px;
   margin: 0 auto;
+  padding: 22px 14px 28px;
 }
 
-.map-intro {
+.map-gallery-header {
   text-align: center;
-  color: var(--text-secondary);
-  font-size: 16px;
-  line-height: 1.5;
-  margin-bottom: var(--spacing-2xl);
+  margin-bottom: 18px;
+  border-bottom: 1px solid #5a3e18;
+  padding-bottom: 12px;
 }
 
-/* Map Container */
-.map-container {
-  background: var(--bg-white);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-2xl);
-  box-shadow: var(--elevation-2);
+.map-gallery-header .map-gallery-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #e8c87a;
+  margin: 0;
 }
 
-.museum-map {
+.map-gallery-header .map-gallery-subtitle {
+  font-size: 11px;
+  color: #6b4e1a;
+  letter-spacing: 0.1em;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.map-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.map-area {
+  flex: 1;
+  min-width: 0;
+}
+
+svg.fp {
   width: 100%;
   height: auto;
   display: block;
 }
 
-/* Zone Hover Effects - Museum Green */
-.map-zone .zone-rect {
-  transition: all var(--transition-base);
+/* Gallery rooms - interactive */
+.groom {
+  cursor: pointer;
 }
 
-.map-zone:hover .zone-rect {
-  opacity: 0.9;
-  stroke-width: 3;
-  filter: drop-shadow(0 4px 12px rgba(30, 90, 67, 0.3));
+.groom rect {
+  fill: #231808;
+  stroke: #5a3e18;
+  stroke-width: 0.8;
+  transition: fill 0.15s, stroke 0.15s;
 }
 
-.map-zone:active .zone-rect {
-  opacity: 1;
-  stroke-width: 4;
+.groom:hover rect {
+  fill: #362510;
+  stroke: #c8973a;
 }
 
-/* Update zone colors to museum palette */
-.map-zone[data-zone="asia"] .zone-rect {
-  fill: rgba(30, 90, 67, 0.15);
-  stroke: var(--museum-green);
+.groom.sel rect {
+  fill: #3e2a0e;
+  stroke: #e8c87a;
+  stroke-width: 1.5;
 }
 
-.map-zone[data-zone="europe"] .zone-rect {
-  fill: rgba(200, 169, 106, 0.15);
-  stroke: var(--accent-gold);
+.groom.sel .glabel {
+  fill: #e8c87a;
 }
 
-.map-zone[data-zone="byzantine"] .zone-rect {
-  fill: rgba(200, 169, 106, 0.2);
-  stroke: var(--accent-gold-light);
+.groom.sel .gsub {
+  fill: #9a6828;
 }
 
-.map-zone[data-zone="temporary"] .zone-rect {
-  fill: rgba(30, 90, 67, 0.1);
-  stroke: var(--museum-green-light);
+.dummy rect {
+  fill: #160f04;
+  stroke: #261507;
+  stroke-width: 0.5;
+  stroke-dasharray: 4 3;
 }
 
-/* Legend */
-.map-legend {
-  background: var(--bg-white);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  box-shadow: var(--elevation-1);
-}
-
-.map-legend h3 {
-  font-size: 20px;
+.glabel {
+  font-family: 'Cormorant Garamond', serif;
+  fill: #c8973a;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--museum-green);
-  margin-bottom: var(--spacing-md);
-  letter-spacing: -0.5px;
+  pointer-events: none;
+  letter-spacing: 0.04em;
 }
 
-.legend-items {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+.gsub {
+  font-family: 'EB Garamond', serif;
+  fill: #5a3e18;
+  font-size: 9.5px;
+  pointer-events: none;
+  letter-spacing: 0.05em;
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: 15px;
-  color: var(--text-secondary);
-  line-height: 1.5;
+.sec-lbl {
+  font-family: 'Cormorant Garamond', serif;
+  fill: #3d2810;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
-.legend-color {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
+/* Sidebar - desktop */
+.map-sidebar {
+  width: 200px;
   flex-shrink: 0;
+  border: 1px solid #5a3e18;
+  border-radius: 2px;
+  background: #1c1408;
+  overflow: hidden;
 }
 
-/* Zone Modal - Museum Styling */
-.zone-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(10, 14, 26, 0.85);
-  backdrop-filter: blur(8px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-xl);
-  opacity: 0;
-  transition: opacity var(--transition-base);
+.sb-hd {
+  background: #231808;
+  border-bottom: 1px solid #5a3e18;
+  padding: 10px 12px;
 }
 
-.zone-modal.visible {
-  opacity: 1;
+.sb-num {
+  font-size: 9px;
+  color: #5a3e18;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-.zone-modal-content {
-  background: var(--bg-white);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-xl);
-  max-width: 500px;
-  width: 100%;
-  position: relative;
-  transform: scale(0.95);
-  transition: transform var(--transition-base);
-  box-shadow: var(--elevation-4);
-}
-
-.zone-modal.visible .zone-modal-content {
-  transform: scale(1);
-}
-
-.zone-modal-close {
-  position: absolute;
-  top: var(--spacing-lg);
-  right: var(--spacing-lg);
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  border: 1px solid var(--border-subtle);
-  border-radius: 50%;
-  color: var(--text-primary);
-  font-size: 1.5rem;
-  line-height: 1;
-  transition: all var(--transition-base);
-  cursor: pointer;
-}
-
-.zone-modal-close:hover {
-  background: var(--museum-green);
-  color: white;
-  border-color: var(--museum-green);
-  transform: rotate(90deg);
-}
-
-.zone-modal-close:active {
-  transform: rotate(90deg) scale(0.95);
-}
-
-.zone-modal-close:focus-visible {
-  outline: 2px solid var(--accent-gold);
-  outline-offset: 2px;
-}
-
-.zone-modal-content h2 {
-  font-size: 28px;
-  font-weight: 500;
-  letter-spacing: -0.5px;
-  color: var(--museum-green);
-  margin-bottom: var(--spacing-lg);
-  padding-right: var(--spacing-2xl);
-}
-
-.zone-modal-content p {
-  color: var(--text-secondary);
-  line-height: 1.8;
-  font-size: 15px;
-  margin-bottom: var(--spacing-xl);
-}
-
-.zone-modal-btn {
-  padding: 14px 24px;
-  background: var(--museum-green);
-  color: white;
-  border: none;
-  border-radius: var(--radius-sm);
+.sb-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  color: #e8c87a;
   font-weight: 600;
-  letter-spacing: 0.5px;
-  width: 100%;
-  transition: all var(--transition-base);
-  cursor: pointer;
+  margin-top: 2px;
+  line-height: 1.15;
 }
 
-.zone-modal-btn:hover {
-  background: var(--museum-green-light);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(30, 90, 67, 0.3);
+.sb-body {
+  padding: 11px 12px;
 }
 
-/* Responsive Design */
-@media (min-width: 768px) {
-  .legend-items {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-lg);
-  }
+.sb-row {
+  margin-bottom: 9px;
 }
 
-@media (max-width: 768px) {
-  .map-header {
-    padding: var(--spacing-lg);
+.sb-lbl {
+  font-size: 9px;
+  color: #4a3218;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.sb-val {
+  font-size: 13px;
+  color: #c8973a;
+  line-height: 1.4;
+}
+
+.sb-div {
+  border: none;
+  border-top: 1px solid #231808;
+  margin: 8px 0;
+}
+
+.sb-tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border: 1px solid #3d2810;
+  border-radius: 1px;
+  color: #6b4e1a;
+  margin-right: 3px;
+  margin-top: 4px;
+}
+
+.sb-empty {
+  padding: 28px 12px;
+  text-align: center;
+}
+
+.sb-empty p {
+  font-size: 12px;
+  color: #3d2810;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.orn {
+  display: block;
+  color: #3d2810;
+  font-size: 15px;
+  margin-bottom: 7px;
+}
+
+.floor-note {
+  font-size: 10px;
+  color: #3d2810;
+  text-align: center;
+  margin-top: 7px;
+  letter-spacing: 0.05em;
+  font-style: italic;
+}
+
+/* ===== Mobile: Bottom Sheet ===== */
+.map-bottom-sheet {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .map-sidebar {
+    display: none;
   }
-  
-  .map-header h1 {
-    font-size: 24px;
+
+  .map-bottom-sheet {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 200;
+    background: #1c1408;
+    border-top: 1px solid #5a3e18;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease;
+    max-height: 85vh;
+    overflow: hidden;
   }
-  
-  .map-content {
-    padding: 40px 24px;
+
+  .map-bottom-sheet[data-state="closed"] {
+    max-height: 56px;
+    overflow: hidden;
   }
-  
-  .map-container {
-    padding: var(--spacing-lg);
+
+  .map-bottom-sheet[data-state="half"] {
+    max-height: 50vh;
+    overflow: hidden;
   }
-  
-  .map-legend {
-    padding: var(--spacing-lg);
+
+  .map-bottom-sheet[data-state="full"] {
+    max-height: 85vh;
+    overflow: auto;
   }
-  
-  .map-legend h3 {
+
+  .map-sheet-handle {
+    width: 40px;
+    height: 4px;
+    background: #5a3e18;
+    border-radius: 2px;
+    margin: 8px auto;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .map-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px 12px;
+    background: #231808;
+    border-bottom: 1px solid #5a3e18;
+    cursor: pointer;
+    min-height: 48px;
+  }
+
+  .map-sheet-title {
+    font-family: 'Cormorant Garamond', serif;
     font-size: 18px;
+    font-weight: 600;
+    color: #e8c87a;
   }
-  
-  .zone-modal-content {
-    padding: var(--spacing-xl);
+
+  .map-sheet-close {
+    background: transparent;
+    border: none;
+    color: #c8973a;
+    font-size: 24px;
+    line-height: 1;
+    padding: 8px;
+    cursor: pointer;
+    min-width: 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
-  
-  .zone-modal-content h2 {
-    font-size: 22px;
+
+  .map-sheet-close:hover {
+    color: #e8c87a;
+  }
+
+  .map-sheet-body {
+    overflow-y: auto;
+    max-height: calc(50vh - 70px);
+    padding: 0;
+  }
+
+  .map-sheet-body .sb-body {
+    padding: 16px;
+  }
+
+  .map-sheet-empty {
+    padding: 28px 16px;
+    text-align: center;
+  }
+
+  .map-sheet-empty p {
+    font-size: 14px;
+    color: #3d2810;
+    line-height: 1.6;
+    font-style: italic;
+  }
+
+  .map-area {
+    min-height: 50vh;
+  }
+
+  .map-area .fp {
+    min-height: 50vh;
+    object-fit: contain;
   }
 }

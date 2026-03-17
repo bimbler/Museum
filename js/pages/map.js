@@ -1,19 +1,71 @@
 /**
  * Museum Map Page
- * Interactive SVG floor plan with tappable zones
+ * Crow-inspired gallery map with interactive SVG floor plan
+ * Desktop: sidebar; Mobile: bottom sheet
  */
+
+const GALLERY_DATA = {
+  g1:  { id: 'G1',  name: 'Gallery 1',  wing: 'Crow / Bar Junction', pos: 'Between wings, top' },
+  g2:  { id: 'G2',  name: 'Gallery 2',  wing: 'Crow Galleries', pos: 'Top row, right' },
+  g3:  { id: 'G3',  name: 'Gallery 3',  wing: 'Crow Galleries', pos: 'Top row, centre-right' },
+  g4:  { id: 'G4',  name: 'Gallery 4',  wing: 'Crow Galleries', pos: 'Top row, centre-left' },
+  g5:  { id: 'G5',  name: 'Gallery 5',  wing: 'Crow Galleries', pos: 'Top row, far left' },
+  g6:  { id: 'G6',  name: 'Gallery 6',  wing: 'Crow Galleries', pos: 'Lower left' },
+  g7:  { id: 'G7',  name: 'Gallery 7',  wing: 'Crow Galleries', pos: 'Lower centre-right' },
+  g8:  { id: 'G8',  name: 'Gallery 8',  wing: 'Bar Galleries',  pos: 'Top' },
+  g9:  { id: 'G9',  name: 'Gallery 9',  wing: 'Bar Galleries',  pos: 'Upper mid' },
+  g10: { id: 'G10', name: 'Gallery 10', wing: 'Bar Galleries',  pos: 'Lower mid' },
+  g11: { id: 'G11', name: 'Gallery 11', wing: 'Bar Galleries',  pos: 'Bottom' },
+};
+
+const SB_EMPTY_HTML = `
+  <div class="sb-empty">
+    <span class="orn">✦</span>
+    <p>Select a gallery to view details.</p>
+  </div>
+`;
+
+function buildSidebarContent(g) {
+  return `
+    <div class="sb-hd">
+      <span class="sb-num">${g.wing} · Level 2</span>
+      <div class="sb-name">${g.name}</div>
+    </div>
+    <div class="sb-body">
+      <div class="sb-row">
+        <span class="sb-lbl">Gallery ID</span>
+        <span class="sb-val">${g.id}</span>
+      </div>
+      <hr class="sb-div"/>
+      <div class="sb-row">
+        <span class="sb-lbl">Location</span>
+        <span class="sb-val">${g.pos}</span>
+      </div>
+      <hr class="sb-div"/>
+      <div class="sb-row">
+        <span class="sb-lbl">Wing</span>
+        <span class="sb-val">${g.wing}</span>
+      </div>
+      <div>
+        <span class="sb-tag">${g.wing}</span>
+        <span class="sb-tag">Level 2</span>
+      </div>
+    </div>`;
+}
 
 export default class MapPage {
   constructor(router, params) {
     this.router = router;
     this.params = params;
+    this.currentGalleryId = null;
+    this.sheetState = 'closed'; // closed | half | full
   }
 
   render() {
     return `
-      <div class="map-page">
+      <div class="map-page map-page-gallery">
         <header class="map-header">
-          <button class="back-btn" data-action="back">
+          <button class="back-btn" data-action="back" aria-label="Back to home">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
@@ -22,117 +74,106 @@ export default class MapPage {
           <div class="header-spacer"></div>
         </header>
 
-        <div class="map-content">
-          <p class="map-intro">Tap on any gallery to learn more about the exhibits within.</p>
-          
-          <div class="map-container">
-            <svg viewBox="0 0 800 600" class="museum-map">
-              <!-- Main building outline -->
-              <rect x="50" y="50" width="700" height="500" 
-                    fill="rgba(255,255,255,0.05)" 
-                    stroke="rgba(255,255,255,0.3)" 
-                    stroke-width="3"/>
-              
-              <!-- Entrance -->
-              <rect x="350" y="520" width="100" height="30" 
-                    fill="rgba(100,200,100,0.3)" 
-                    stroke="rgba(100,200,100,0.8)" 
-                    stroke-width="2"/>
-              <text x="400" y="540" text-anchor="middle" fill="white" font-size="14" font-weight="bold">
-                ENTRANCE
-              </text>
-              
-              <!-- Gallery 1: Ancient Asia -->
-              <g class="map-zone" data-zone="asia" style="cursor: pointer;">
-                <rect x="70" y="70" width="300" height="200" 
-                      fill="rgba(139,105,20,0.2)" 
-                      stroke="rgba(139,105,20,0.8)" 
-                      stroke-width="2"
-                      class="zone-rect"/>
-                <text x="220" y="160" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
-                  Ancient Asia
-                </text>
-                <text x="220" y="185" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">
-                  Buddha • Ceramics • Textiles
-                </text>
-              </g>
-              
-              <!-- Gallery 2: Classical Europe -->
-              <g class="map-zone" data-zone="europe" style="cursor: pointer;">
-                <rect x="430" y="70" width="300" height="200" 
-                      fill="rgba(26,77,139,0.2)" 
-                      stroke="rgba(26,77,139,0.8)" 
-                      stroke-width="2"
-                      class="zone-rect"/>
-                <text x="580" y="160" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
-                  Classical Europe
-                </text>
-                <text x="580" y="185" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">
-                  Marble Sculptures • Pottery
-                </text>
-              </g>
-              
-              <!-- Gallery 3: Byzantine Treasury -->
-              <g class="map-zone" data-zone="byzantine" style="cursor: pointer;">
-                <rect x="70" y="320" width="300" height="200" 
-                      fill="rgba(255,215,0,0.2)" 
-                      stroke="rgba(255,215,0,0.8)" 
-                      stroke-width="2"
-                      class="zone-rect"/>
-                <text x="220" y="410" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
-                  Byzantine Treasury
-                </text>
-                <text x="220" y="435" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">
-                  Gold • Gems • Icons
-                </text>
-              </g>
-              
-              <!-- Gallery 4: Temporary Exhibitions -->
-              <g class="map-zone" data-zone="temporary" style="cursor: pointer;">
-                <rect x="430" y="320" width="300" height="200" 
-                      fill="rgba(150,150,150,0.2)" 
-                      stroke="rgba(150,150,150,0.8)" 
-                      stroke-width="2"
-                      class="zone-rect"/>
-                <text x="580" y="410" text-anchor="middle" fill="white" font-size="18" font-weight="bold">
-                  Temporary Exhibitions
-                </text>
-                <text x="580" y="435" text-anchor="middle" fill="rgba(255,255,255,0.8)" font-size="14">
-                  Rotating Collections
-                </text>
-              </g>
-              
-              <!-- Central Atrium -->
-              <circle cx="400" cy="300" r="50" 
-                      fill="rgba(100,150,200,0.2)" 
-                      stroke="rgba(100,150,200,0.8)" 
-                      stroke-width="2"/>
-              <text x="400" y="305" text-anchor="middle" fill="white" font-size="14" font-weight="bold">
-                Atrium
-              </text>
-            </svg>
+        <div class="map-shell">
+          <div class="map-gallery-header">
+            <h2 class="map-gallery-title">Gallery Map — Level 2</h2>
+            <p class="map-gallery-subtitle">Crow Galleries · Bar Galleries</p>
           </div>
 
-          <div class="map-legend">
-            <h3>Legend</h3>
-            <div class="legend-items">
-              <div class="legend-item">
-                <span class="legend-color" style="background: rgba(139,105,20,0.5);"></span>
-                <span>Ancient Asia Gallery</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-color" style="background: rgba(26,77,139,0.5);"></span>
-                <span>Classical Europe Gallery</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-color" style="background: rgba(255,215,0,0.5);"></span>
-                <span>Byzantine Treasury</span>
-              </div>
-              <div class="legend-item">
-                <span class="legend-color" style="background: rgba(150,150,150,0.5);"></span>
-                <span>Temporary Exhibitions</span>
-              </div>
+          <div class="map-layout">
+            <div class="map-area">
+              <svg class="fp" viewBox="0 0 740 580" xmlns="http://www.w3.org/2000/svg">
+                <rect x="0" y="0" width="740" height="580" fill="#100c04"/>
+                <rect x="12" y="12" width="428" height="556" rx="2" fill="#120d04" stroke="#2a1507" stroke-width="1"/>
+                <text class="sec-lbl" x="226" y="25" text-anchor="middle">Crow Galleries</text>
+
+                <g class="groom" id="g5" data-gallery="g5" role="button" tabindex="0" aria-label="Gallery 5">
+                  <rect x="18" y="30" width="96" height="140" rx="1"/>
+                  <text class="glabel" x="66" y="94" text-anchor="middle" dominant-baseline="central">G5</text>
+                  <text class="gsub" x="66" y="112" text-anchor="middle">Gallery 5</text>
+                </g>
+                <g class="groom" id="g4" data-gallery="g4" role="button" tabindex="0" aria-label="Gallery 4">
+                  <rect x="118" y="30" width="96" height="140" rx="1"/>
+                  <text class="glabel" x="166" y="94" text-anchor="middle" dominant-baseline="central">G4</text>
+                  <text class="gsub" x="166" y="112" text-anchor="middle">Gallery 4</text>
+                </g>
+                <g class="groom" id="g3" data-gallery="g3" role="button" tabindex="0" aria-label="Gallery 3">
+                  <rect x="218" y="30" width="108" height="140" rx="1"/>
+                  <text class="glabel" x="272" y="94" text-anchor="middle" dominant-baseline="central">G3</text>
+                  <text class="gsub" x="272" y="112" text-anchor="middle">Gallery 3</text>
+                </g>
+                <g class="groom" id="g2" data-gallery="g2" role="button" tabindex="0" aria-label="Gallery 2">
+                  <rect x="330" y="30" width="104" height="140" rx="1"/>
+                  <text class="glabel" x="382" y="94" text-anchor="middle" dominant-baseline="central">G2</text>
+                  <text class="gsub" x="382" y="112" text-anchor="middle">Gallery 2</text>
+                </g>
+                <g class="groom" id="g6" data-gallery="g6" role="button" tabindex="0" aria-label="Gallery 6">
+                  <rect x="18" y="178" width="210" height="212" rx="1"/>
+                  <text class="glabel" x="123" y="278" text-anchor="middle" dominant-baseline="central">G6</text>
+                  <text class="gsub" x="123" y="296" text-anchor="middle">Gallery 6</text>
+                </g>
+                <g class="groom" id="g7" data-gallery="g7" role="button" tabindex="0" aria-label="Gallery 7">
+                  <rect x="232" y="178" width="202" height="212" rx="1"/>
+                  <text class="glabel" x="333" y="278" text-anchor="middle" dominant-baseline="central">G7</text>
+                  <text class="gsub" x="333" y="296" text-anchor="middle">Gallery 7</text>
+                </g>
+                <g class="dummy">
+                  <rect x="18" y="398" width="210" height="160" rx="1"/>
+                </g>
+                <g class="dummy">
+                  <rect x="232" y="398" width="202" height="160" rx="1"/>
+                </g>
+                <g class="groom" id="g1" data-gallery="g1" role="button" tabindex="0" aria-label="Gallery 1">
+                  <rect x="448" y="30" width="82" height="140" rx="1"/>
+                  <text class="glabel" x="489" y="94" text-anchor="middle" dominant-baseline="central">G1</text>
+                  <text class="gsub" x="489" y="112" text-anchor="middle">Gallery 1</text>
+                </g>
+                <rect x="538" y="12" width="192" height="556" rx="2" fill="#120d04" stroke="#2a1507" stroke-width="1"/>
+                <text class="sec-lbl" x="634" y="25" text-anchor="middle">Bar Galleries</text>
+                <g class="groom" id="g8" data-gallery="g8" role="button" tabindex="0" aria-label="Gallery 8">
+                  <rect x="544" y="30" width="180" height="124" rx="1"/>
+                  <text class="glabel" x="634" y="85" text-anchor="middle" dominant-baseline="central">G8</text>
+                  <text class="gsub" x="634" y="103" text-anchor="middle">Gallery 8</text>
+                </g>
+                <g class="groom" id="g9" data-gallery="g9" role="button" tabindex="0" aria-label="Gallery 9">
+                  <rect x="544" y="162" width="180" height="124" rx="1"/>
+                  <text class="glabel" x="634" y="217" text-anchor="middle" dominant-baseline="central">G9</text>
+                  <text class="gsub" x="634" y="235" text-anchor="middle">Gallery 9</text>
+                </g>
+                <g class="groom" id="g10" data-gallery="g10" role="button" tabindex="0" aria-label="Gallery 10">
+                  <rect x="544" y="294" width="180" height="124" rx="1"/>
+                  <text class="glabel" x="634" y="349" text-anchor="middle" dominant-baseline="central">G10</text>
+                  <text class="gsub" x="634" y="367" text-anchor="middle">Gallery 10</text>
+                </g>
+                <g class="groom" id="g11" data-gallery="g11" role="button" tabindex="0" aria-label="Gallery 11">
+                  <rect x="544" y="426" width="180" height="124" rx="1"/>
+                  <text class="glabel" x="634" y="481" text-anchor="middle" dominant-baseline="central">G11</text>
+                  <text class="gsub" x="634" y="499" text-anchor="middle">Gallery 11</text>
+                </g>
+                <text x="732" y="576" text-anchor="end" style="font-size:9px;fill:#3a2a0e;font-family:'EB Garamond',serif;letter-spacing:0.06em;">N ↑</text>
+              </svg>
+              <p class="floor-note">Level 1 — administration, reading rooms &amp; visitor services only</p>
             </div>
+
+            <div class="map-sidebar" id="map-sidebar">
+              <div id="sb">${SB_EMPTY_HTML}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile bottom sheet (hidden on desktop) -->
+        <div class="map-bottom-sheet" id="map-bottom-sheet" data-state="closed" aria-hidden="true">
+          <div class="map-sheet-handle" data-action="toggle-sheet" aria-label="Toggle gallery details"></div>
+          <div class="map-sheet-header" data-action="toggle-sheet">
+            <span class="map-sheet-title" id="map-sheet-title">Select a gallery</span>
+            <button class="map-sheet-close" data-action="close-sheet" aria-label="Close details">&times;</button>
+          </div>
+          <div class="map-sheet-body" id="map-sheet-body">
+            <div class="map-sheet-empty" id="map-sheet-empty">
+              <span class="orn">✦</span>
+              <p>Select a gallery on the map to view details.</p>
+            </div>
+            <div class="map-sheet-content" id="map-sheet-content" style="display: none;"></div>
           </div>
         </div>
       </div>
@@ -140,99 +181,103 @@ export default class MapPage {
   }
 
   mount() {
-    // Back button handler
     const backBtn = document.querySelector('[data-action="back"]');
     if (backBtn) {
-      backBtn.addEventListener('click', () => {
-        this.router.navigate('/');
-      });
+      backBtn.addEventListener('click', () => this.router.navigate('/'));
     }
 
-    // Zone click handlers
-    const zones = document.querySelectorAll('.map-zone');
-    zones.forEach(zone => {
-      // Add hover effect
-      const rect = zone.querySelector('.zone-rect');
-      
-      zone.addEventListener('mouseenter', () => {
-        rect.style.opacity = '0.8';
-      });
-      
-      zone.addEventListener('mouseleave', () => {
-        rect.style.opacity = '1';
-      });
-      
-      // Click handler
-      zone.addEventListener('click', (e) => {
-        const zoneName = e.currentTarget.getAttribute('data-zone');
-        this.handleZoneClick(zoneName);
-      });
-    });
-  }
-
-  handleZoneClick(zoneName) {
-    const zoneInfo = {
-      asia: {
-        title: 'Ancient Asia Gallery',
-        description: 'Explore artifacts from China, Japan, Cambodia, and India spanning over 2000 years of history. Features our Buddha Statue with AR capability.'
-      },
-      europe: {
-        title: 'Classical Europe Gallery',
-        description: 'Roman and Greek sculptures, pottery, and everyday objects from the height of classical civilization.'
-      },
-      byzantine: {
-        title: 'Byzantine Treasury',
-        description: 'Golden reliquaries, jewelry, and religious icons from the Byzantine Empire, showcasing their masterful metalwork.'
-      },
-      temporary: {
-        title: 'Temporary Exhibitions',
-        description: 'Currently closed for installation. Check back soon for our next exhibition.'
-      }
-    };
-
-    const info = zoneInfo[zoneName];
-    if (info) {
-      // Show modal with zone information
-      const modal = document.createElement('div');
-      modal.className = 'zone-modal';
-      modal.innerHTML = `
-        <div class="zone-modal-content">
-          <button class="zone-modal-close">&times;</button>
-          <h2>${info.title}</h2>
-          <p>${info.description}</p>
-          <button class="zone-modal-btn" data-action="view-collection">View Collection</button>
-        </div>
-      `;
-      
-      document.body.appendChild(modal);
-      
-      // Close button
-      modal.querySelector('.zone-modal-close').addEventListener('click', () => {
-        modal.remove();
-      });
-      
-      // View collection button
-      modal.querySelector('[data-action="view-collection"]').addEventListener('click', () => {
-        modal.remove();
-        this.router.navigate('/collection');
-      });
-      
-      // Click outside to close
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-          modal.remove();
+    const rooms = document.querySelectorAll('.groom[data-gallery]');
+    rooms.forEach((room) => {
+      const id = room.getAttribute('data-gallery');
+      const handleSelect = () => this.selectGallery(id);
+      room.addEventListener('click', handleSelect);
+      room.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleSelect();
         }
       });
-      
-      // Animate in
-      setTimeout(() => modal.classList.add('visible'), 10);
+    });
+
+    document.querySelectorAll('[data-action="toggle-sheet"]').forEach((el) => {
+      el.addEventListener('click', () => this.toggleSheet());
+    });
+    const closeSheet = document.querySelector('[data-action="close-sheet"]');
+    if (closeSheet) {
+      closeSheet.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.setSheetState('closed');
+      });
+    }
+  }
+
+  selectGallery(id) {
+    const prev = this.currentGalleryId;
+    this.currentGalleryId = id;
+
+    if (prev) {
+      const prevEl = document.getElementById(prev);
+      if (prevEl) prevEl.classList.remove('sel');
+    }
+    const el = document.getElementById(id);
+    if (el) el.classList.add('sel');
+
+    const g = GALLERY_DATA[id];
+    if (!g) return;
+
+    const sb = document.getElementById('sb');
+    if (sb) sb.innerHTML = buildSidebarContent(g);
+
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    if (isMobile) {
+      this.updateBottomSheet(g);
+      this.setSheetState('half');
+    }
+  }
+
+  updateBottomSheet(g) {
+    const titleEl = document.getElementById('map-sheet-title');
+    const emptyEl = document.getElementById('map-sheet-empty');
+    const contentEl = document.getElementById('map-sheet-content');
+    const sheet = document.getElementById('map-bottom-sheet');
+
+    if (titleEl) titleEl.textContent = g ? g.name : 'Select a gallery';
+    if (sheet) sheet.setAttribute('aria-hidden', g ? 'false' : 'true');
+
+    if (g) {
+      if (emptyEl) emptyEl.style.display = 'none';
+      if (contentEl) {
+        contentEl.style.display = 'block';
+        contentEl.innerHTML = buildSidebarContent(g);
+      }
+    } else {
+      if (emptyEl) emptyEl.style.display = 'block';
+      if (contentEl) {
+        contentEl.style.display = 'none';
+        contentEl.innerHTML = '';
+      }
+    }
+  }
+
+  setSheetState(state) {
+    this.sheetState = state;
+    const sheet = document.getElementById('map-bottom-sheet');
+    if (sheet) sheet.setAttribute('data-state', state);
+  }
+
+  toggleSheet() {
+    const sheet = document.getElementById('map-bottom-sheet');
+    if (!sheet) return;
+
+    const state = sheet.getAttribute('data-state');
+    if (state === 'closed') {
+      this.setSheetState('half');
+    } else {
+      this.setSheetState('closed');
     }
   }
 
   cleanup() {
-    // Remove any open modals
-    const modals = document.querySelectorAll('.zone-modal');
-    modals.forEach(modal => modal.remove());
     return Promise.resolve();
   }
 }
