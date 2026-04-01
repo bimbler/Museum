@@ -84,6 +84,7 @@ export async function checkARSupport() {
     webxrSupported,
     markerARSupported: true, // MindAR works on most devices with camera
     planeARSupported: webxrSupported && deviceInfo.isAndroid,
+    quickLookSupported: deviceInfo.isIOS,
     recommendedAR: webxrSupported && deviceInfo.isAndroid ? 'plane' : 'marker'
   };
 }
@@ -97,7 +98,8 @@ export async function getAROptions() {
   
   return {
     showMarkerAR: true, // Always show marker AR (works everywhere)
-    showPlaneAR: support.planeARSupported, // Only show on Android Chrome
+    showPlaneAR: support.planeARSupported, // WebXR on Android Chrome
+    showQuickLookAR: support.quickLookSupported, // AR Quick Look on iOS
     deviceSupport: support
   };
 }

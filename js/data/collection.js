@@ -24,6 +24,7 @@ Facts:
     hasModel: true,
     hasAR: true,
     modelPath: './assets/buddha.glb',
+    usdzPath: './assets/buddha.usdz',
     targetIndex: 0,
     arTargetHeightM: 1.52,
     material: 'Sandstone',

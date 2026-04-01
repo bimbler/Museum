@@ -164,11 +164,28 @@ export default class ObjectDetailPage {
                       </div>
                     </button>
                   ` : ''}
+
+                  ${this.arOptions.showQuickLookAR && this.object.usdzPath ? `
+                    <a rel="ar" href="${this.object.usdzPath}" class="ar-launch-btn quicklook-ar">
+                      <img src="${this.object.thumbnail}" class="ar-quicklook-img">
+                      <div class="ar-btn-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                          <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                          <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                      </div>
+                      <div class="ar-btn-content">
+                        <span class="ar-btn-title">Place on Surface</span>
+                        <span class="ar-btn-subtitle">View in your space (iOS)</span>
+                      </div>
+                    </a>
+                  ` : ''}
                 </div>
 
-                ${!this.arOptions.showPlaneAR ? `
+                ${!this.arOptions.showPlaneAR && !this.arOptions.showQuickLookAR ? `
                   <div class="ar-platform-note">
-                    <p><strong>Did you know?</strong> Surface placement AR is available on Android Chrome. Currently viewing from ${this.arOptions.deviceSupport.platform}.</p>
+                    <p><strong>Did you know?</strong> Surface placement AR is available on Android Chrome and iOS Safari.</p>
                   </div>
                 ` : ''}
               </div>

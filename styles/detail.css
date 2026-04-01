@@ -446,6 +446,28 @@
   background: var(--museum-green-light);
 }
 
+a.ar-launch-btn {
+  text-decoration: none;
+  color: white;
+}
+
+.ar-launch-btn.quicklook-ar {
+  background: var(--color-jade);
+}
+
+.ar-launch-btn.quicklook-ar:hover {
+  background: var(--museum-green-light);
+}
+
+.ar-quicklook-img {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  pointer-events: none;
+}
+
 .ar-launch-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--elevation-4);
