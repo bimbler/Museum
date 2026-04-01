@@ -1,11 +1,11 @@
 /**
- * Collection Page Styles - Museum Editorial Design
- * Generous whitespace and elegant card layout
+ * Collection Page Styles - Crow Museum Editorial Design
+ * Asymmetric grid with hover overlays and gold accents
  */
 
 .collection-page {
   min-height: 100vh;
-  background: var(--bg-cream);
+  background: var(--color-linen);
 }
 
 .collection-header {
@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--spacing-lg) var(--spacing-3xl);
-  background: var(--bg-white);
+  background: var(--color-sand);
   border-bottom: 1px solid var(--border-subtle);
   position: sticky;
   top: 0;
@@ -22,10 +22,11 @@
 }
 
 .collection-header h1 {
+  font-family: var(--font-heading);
   font-size: 32px;
-  font-weight: 500;
-  letter-spacing: -0.8px;
-  color: var(--text-primary);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--color-ink);
   margin: 0;
   flex: 1;
   text-align: center;
@@ -40,16 +41,16 @@
   background: transparent;
   border: 1px solid var(--border-subtle);
   border-radius: 50%;
-  color: var(--text-primary);
+  color: var(--color-ink);
   transition: all var(--transition-base);
   cursor: pointer;
   box-shadow: var(--elevation-0);
 }
 
 .back-btn:hover {
-  background: var(--museum-green);
+  background: var(--color-gold);
   color: white;
-  border-color: var(--museum-green);
+  border-color: var(--color-gold);
   transform: scale(1.05);
   box-shadow: var(--elevation-2);
 }
@@ -59,7 +60,7 @@
 }
 
 .back-btn:focus-visible {
-  outline: 2px solid var(--accent-gold);
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
@@ -85,13 +86,13 @@
 }
 
 .breadcrumb-link {
-  color: var(--museum-green);
+  color: var(--color-gold);
   text-decoration: none;
   transition: color var(--transition-base);
 }
 
 .breadcrumb-link:hover {
-  color: var(--museum-green-light);
+  color: var(--color-amber);
   text-decoration: underline;
 }
 
@@ -101,7 +102,7 @@
 }
 
 .breadcrumb-current {
-  color: var(--text-primary);
+  color: var(--color-ink);
   font-weight: 500;
 }
 
@@ -109,7 +110,7 @@
   text-align: center;
   color: var(--text-secondary);
   font-size: 16px;
-  line-height: 1.5;
+  line-height: 1.7;
   max-width: 600px;
   margin: 0 auto var(--spacing-md);
   padding: 0;
@@ -128,26 +129,27 @@
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--spacing-md);
-  background: rgba(200, 169, 106, 0.1);
-  border: 1px solid var(--accent-gold);
+  background: rgba(139, 105, 20, 0.1);
+  border: 1px solid var(--color-gold);
   border-radius: var(--radius-md);
-  color: var(--accent-gold);
+  color: var(--color-gold);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.3px;
 }
 
-/* Collection Grid - 4-Column Mobile-First System */
+/* Collection Grid - Editorial Layout */
 .collection-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-auto-rows: minmax(200px, auto);
   gap: var(--spacing-xl);
   margin-top: var(--spacing-lg);
 }
 
-/* Object Card - Museum Style */
+/* Object Card - Crow Museum Style */
 .object-card {
-  background: var(--bg-white);
+  background: var(--color-sand);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -155,6 +157,11 @@
   opacity: 0;
   transform: translateY(20px);
   box-shadow: var(--elevation-1);
+  position: relative;
+}
+
+.object-card.featured {
+  border: 2px solid var(--color-gold);
 }
 
 .object-card.fade-in {
@@ -163,8 +170,12 @@
 }
 
 .object-card:hover {
-  border-color: var(--accent-gold);
+  border-color: var(--color-gold);
   box-shadow: var(--elevation-3);
+  transform: translateY(-4px);
+}
+
+.object-card.fade-in:hover {
   transform: translateY(-4px);
 }
 
@@ -172,7 +183,7 @@
 .card-image {
   position: relative;
   width: 100%;
-  padding-top: 75%; /* 4:3 aspect ratio */
+  padding-top: 75%;
   background: var(--bg-light-gray);
   overflow: hidden;
 }
@@ -191,12 +202,46 @@
   transform: scale(1.05);
 }
 
+/* Hover Overlay */
+.tile-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.5rem;
+  background: linear-gradient(to top, rgba(26, 26, 26, 0.85) 0%, rgba(26, 26, 26, 0.4) 70%, transparent 100%);
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+
+.object-card:hover .tile-overlay {
+  opacity: 1;
+}
+
+.tile-overlay .tile-title {
+  font-family: var(--font-heading);
+  color: var(--color-linen);
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+
+.tile-overlay .tile-origin {
+  font-size: 12px;
+  color: var(--color-sand);
+  opacity: 0.85;
+}
+
 .ar-badge {
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
   padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--accent-gold);
+  background: var(--color-gold);
   backdrop-filter: blur(10px);
   border-radius: var(--radius-md);
   color: white;
@@ -207,6 +252,7 @@
   align-items: center;
   gap: 4px;
   box-shadow: var(--elevation-2);
+  z-index: 2;
 }
 
 /* Card Content */
@@ -215,27 +261,36 @@
 }
 
 .card-title {
+  font-family: var(--font-heading);
   font-size: 24px;
-  font-weight: 500;
-  letter-spacing: -0.5px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   margin-bottom: var(--spacing-xs);
-  color: var(--text-primary);
+  color: var(--color-ink);
   line-height: 1.3;
 }
 
 .card-period {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-style: italic;
   font-size: 16px;
-  color: var(--accent-gold);
-  font-weight: 600;
+  color: var(--color-gold);
+  font-weight: 400;
+  margin-bottom: 4px;
+  display: block;
+}
+
+.card-origin {
+  font-size: 12px;
+  color: var(--text-muted);
   margin-bottom: var(--spacing-md);
   display: block;
+  letter-spacing: 0.02em;
 }
 
 .card-description {
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.7;
   color: var(--text-secondary);
   margin-bottom: var(--spacing-md);
   display: -webkit-box;
@@ -249,7 +304,7 @@
   align-items: center;
   gap: var(--spacing-xs);
   padding: 12px 20px;
-  background: var(--museum-green);
+  background: var(--color-gold);
   color: white;
   border: none;
   border-radius: var(--radius-md);
@@ -263,7 +318,7 @@
 }
 
 .card-btn:hover {
-  background: var(--museum-green-light);
+  background: var(--color-amber);
   gap: var(--spacing-sm);
   box-shadow: var(--elevation-2);
   transform: translateY(-1px);
@@ -275,7 +330,7 @@
 }
 
 .card-btn:focus-visible {
-  outline: 2px solid var(--accent-gold);
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
@@ -299,38 +354,37 @@
   .collection-header {
     padding: var(--spacing-md) var(--spacing-md);
   }
-  
+
   .collection-header h1 {
     font-size: 24px;
-    letter-spacing: -0.5px;
   }
-  
+
   .collection-content {
     padding: var(--spacing-xl) var(--spacing-md);
   }
-  
+
   .collection-intro {
     margin-bottom: var(--spacing-xl);
     font-size: 15px;
   }
-  
+
   .collection-grid {
     grid-template-columns: 1fr;
     gap: var(--spacing-lg);
   }
-  
+
   .card-content {
     padding: var(--spacing-md);
   }
-  
+
   .card-title {
     font-size: 20px;
   }
-  
+
   .card-period {
     font-size: 14px;
   }
-  
+
   .card-description {
     font-size: 14px;
     -webkit-line-clamp: 4;
@@ -342,15 +396,15 @@
     width: 44px;
     height: 44px;
   }
-  
+
   .header-spacer {
     width: 44px;
   }
-  
+
   .collection-content {
     padding: var(--spacing-lg) var(--spacing-sm);
   }
-  
+
   .collection-grid {
     gap: var(--spacing-md);
   }

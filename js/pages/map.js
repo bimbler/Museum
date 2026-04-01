@@ -1,21 +1,30 @@
 /**
  * Museum Map Page
- * Crow-inspired gallery map with interactive SVG floor plan
+ * Crow-inspired gallery map with region color-coding and collection links
  * Desktop: sidebar; Mobile: bottom sheet
  */
 
+import { getObjectsByGallery } from '../data/collection.js';
+
 const GALLERY_DATA = {
-  g1:  { id: 'G1',  name: 'Gallery 1',  wing: 'Crow / Bar Junction', pos: 'Between wings, top' },
-  g2:  { id: 'G2',  name: 'Gallery 2',  wing: 'Crow Galleries', pos: 'Top row, right' },
-  g3:  { id: 'G3',  name: 'Gallery 3',  wing: 'Crow Galleries', pos: 'Top row, centre-right' },
-  g4:  { id: 'G4',  name: 'Gallery 4',  wing: 'Crow Galleries', pos: 'Top row, centre-left' },
-  g5:  { id: 'G5',  name: 'Gallery 5',  wing: 'Crow Galleries', pos: 'Top row, far left' },
-  g6:  { id: 'G6',  name: 'Gallery 6',  wing: 'Crow Galleries', pos: 'Lower left' },
-  g7:  { id: 'G7',  name: 'Gallery 7',  wing: 'Crow Galleries', pos: 'Lower centre-right' },
-  g8:  { id: 'G8',  name: 'Gallery 8',  wing: 'Bar Galleries',  pos: 'Top' },
-  g9:  { id: 'G9',  name: 'Gallery 9',  wing: 'Bar Galleries',  pos: 'Upper mid' },
-  g10: { id: 'G10', name: 'Gallery 10', wing: 'Bar Galleries',  pos: 'Lower mid' },
-  g11: { id: 'G11', name: 'Gallery 11', wing: 'Bar Galleries',  pos: 'Bottom' },
+  g1:  { id: 'G1',  name: 'Gallery 1',  wing: 'Crow / Bar Junction', pos: 'Between wings, top', region: 'mixed' },
+  g2:  { id: 'G2',  name: 'Gallery 2',  wing: 'Crow Galleries', pos: 'Top row, right', region: 'china' },
+  g3:  { id: 'G3',  name: 'Gallery 3',  wing: 'Crow Galleries', pos: 'Top row, centre-right', region: 'china' },
+  g4:  { id: 'G4',  name: 'Gallery 4',  wing: 'Crow Galleries', pos: 'Top row, centre-left', region: 'india' },
+  g5:  { id: 'G5',  name: 'Gallery 5',  wing: 'Crow Galleries', pos: 'Top row, far left', region: 'japan' },
+  g6:  { id: 'G6',  name: 'Gallery 6',  wing: 'Crow Galleries', pos: 'Lower left', region: 'japan' },
+  g7:  { id: 'G7',  name: 'Gallery 7',  wing: 'Crow Galleries', pos: 'Lower centre-right', region: 'china' },
+  g8:  { id: 'G8',  name: 'Gallery 8',  wing: 'Bar Galleries',  pos: 'Top', region: 'mixed' },
+  g9:  { id: 'G9',  name: 'Gallery 9',  wing: 'Bar Galleries',  pos: 'Upper mid', region: 'mixed' },
+  g10: { id: 'G10', name: 'Gallery 10', wing: 'Bar Galleries',  pos: 'Lower mid', region: 'india' },
+  g11: { id: 'G11', name: 'Gallery 11', wing: 'Bar Galleries',  pos: 'Bottom', region: 'india' },
+};
+
+const REGION_LABELS = {
+  japan: 'Japan',
+  china: 'China / Jade',
+  india: 'India / SE Asia',
+  mixed: 'Mixed'
 };
 
 const SB_EMPTY_HTML = `
@@ -26,6 +35,22 @@ const SB_EMPTY_HTML = `
 `;
 
 function buildSidebarContent(g) {
+  const objects = getObjectsByGallery(g.id.toLowerCase());
+  const regionLabel = REGION_LABELS[g.region] || g.region;
+
+  const objectListHTML = objects.length > 0
+    ? `<hr class="sb-div"/>
+       <div class="sb-row">
+         <span class="sb-lbl">Objects in Gallery</span>
+         ${objects.map(obj => `
+           <a href="#/object/${obj.id}" class="sb-object-link">
+             <span class="sb-object-title">${obj.title}</span>
+             <span class="sb-object-period">${obj.period}</span>
+           </a>
+         `).join('')}
+       </div>`
+    : '';
+
   return `
     <div class="sb-hd">
       <span class="sb-num">${g.wing} · Level 2</span>
@@ -43,13 +68,14 @@ function buildSidebarContent(g) {
       </div>
       <hr class="sb-div"/>
       <div class="sb-row">
-        <span class="sb-lbl">Wing</span>
-        <span class="sb-val">${g.wing}</span>
+        <span class="sb-lbl">Region</span>
+        <span class="sb-val">${regionLabel}</span>
       </div>
       <div>
         <span class="sb-tag">${g.wing}</span>
-        <span class="sb-tag">Level 2</span>
+        <span class="sb-tag sb-tag-${g.region}">${regionLabel}</span>
       </div>
+      ${objectListHTML}
     </div>`;
 }
 
@@ -58,7 +84,7 @@ export default class MapPage {
     this.router = router;
     this.params = params;
     this.currentGalleryId = null;
-    this.sheetState = 'closed'; // closed | half | full
+    this.sheetState = 'closed';
   }
 
   render() {
@@ -87,32 +113,32 @@ export default class MapPage {
                 <rect x="12" y="12" width="428" height="556" rx="2" fill="#120d04" stroke="#2a1507" stroke-width="1"/>
                 <text class="sec-lbl" x="226" y="25" text-anchor="middle">Crow Galleries</text>
 
-                <g class="groom" id="g5" data-gallery="g5" role="button" tabindex="0" aria-label="Gallery 5">
+                <g class="groom japan" id="g5" data-gallery="g5" role="button" tabindex="0" aria-label="Gallery 5 - Japan">
                   <rect x="18" y="30" width="96" height="140" rx="1"/>
                   <text class="glabel" x="66" y="94" text-anchor="middle" dominant-baseline="central">G5</text>
                   <text class="gsub" x="66" y="112" text-anchor="middle">Gallery 5</text>
                 </g>
-                <g class="groom" id="g4" data-gallery="g4" role="button" tabindex="0" aria-label="Gallery 4">
+                <g class="groom india" id="g4" data-gallery="g4" role="button" tabindex="0" aria-label="Gallery 4 - India">
                   <rect x="118" y="30" width="96" height="140" rx="1"/>
                   <text class="glabel" x="166" y="94" text-anchor="middle" dominant-baseline="central">G4</text>
                   <text class="gsub" x="166" y="112" text-anchor="middle">Gallery 4</text>
                 </g>
-                <g class="groom" id="g3" data-gallery="g3" role="button" tabindex="0" aria-label="Gallery 3">
+                <g class="groom china" id="g3" data-gallery="g3" role="button" tabindex="0" aria-label="Gallery 3 - China">
                   <rect x="218" y="30" width="108" height="140" rx="1"/>
                   <text class="glabel" x="272" y="94" text-anchor="middle" dominant-baseline="central">G3</text>
                   <text class="gsub" x="272" y="112" text-anchor="middle">Gallery 3</text>
                 </g>
-                <g class="groom" id="g2" data-gallery="g2" role="button" tabindex="0" aria-label="Gallery 2">
+                <g class="groom china" id="g2" data-gallery="g2" role="button" tabindex="0" aria-label="Gallery 2 - China">
                   <rect x="330" y="30" width="104" height="140" rx="1"/>
                   <text class="glabel" x="382" y="94" text-anchor="middle" dominant-baseline="central">G2</text>
                   <text class="gsub" x="382" y="112" text-anchor="middle">Gallery 2</text>
                 </g>
-                <g class="groom" id="g6" data-gallery="g6" role="button" tabindex="0" aria-label="Gallery 6">
+                <g class="groom japan" id="g6" data-gallery="g6" role="button" tabindex="0" aria-label="Gallery 6 - Japan">
                   <rect x="18" y="178" width="210" height="212" rx="1"/>
                   <text class="glabel" x="123" y="278" text-anchor="middle" dominant-baseline="central">G6</text>
                   <text class="gsub" x="123" y="296" text-anchor="middle">Gallery 6</text>
                 </g>
-                <g class="groom" id="g7" data-gallery="g7" role="button" tabindex="0" aria-label="Gallery 7">
+                <g class="groom china" id="g7" data-gallery="g7" role="button" tabindex="0" aria-label="Gallery 7 - China">
                   <rect x="232" y="178" width="202" height="212" rx="1"/>
                   <text class="glabel" x="333" y="278" text-anchor="middle" dominant-baseline="central">G7</text>
                   <text class="gsub" x="333" y="296" text-anchor="middle">Gallery 7</text>
@@ -140,18 +166,26 @@ export default class MapPage {
                   <text class="glabel" x="634" y="217" text-anchor="middle" dominant-baseline="central">G9</text>
                   <text class="gsub" x="634" y="235" text-anchor="middle">Gallery 9</text>
                 </g>
-                <g class="groom" id="g10" data-gallery="g10" role="button" tabindex="0" aria-label="Gallery 10">
+                <g class="groom india" id="g10" data-gallery="g10" role="button" tabindex="0" aria-label="Gallery 10 - India">
                   <rect x="544" y="294" width="180" height="124" rx="1"/>
                   <text class="glabel" x="634" y="349" text-anchor="middle" dominant-baseline="central">G10</text>
                   <text class="gsub" x="634" y="367" text-anchor="middle">Gallery 10</text>
                 </g>
-                <g class="groom" id="g11" data-gallery="g11" role="button" tabindex="0" aria-label="Gallery 11">
+                <g class="groom india" id="g11" data-gallery="g11" role="button" tabindex="0" aria-label="Gallery 11 - India">
                   <rect x="544" y="426" width="180" height="124" rx="1"/>
                   <text class="glabel" x="634" y="481" text-anchor="middle" dominant-baseline="central">G11</text>
                   <text class="gsub" x="634" y="499" text-anchor="middle">Gallery 11</text>
                 </g>
                 <text x="732" y="576" text-anchor="end" style="font-size:9px;fill:#3a2a0e;font-family:'EB Garamond',serif;letter-spacing:0.06em;">N ↑</text>
               </svg>
+
+              <!-- Region Legend -->
+              <div class="map-legend">
+                <span class="legend-item legend-japan"><span class="legend-swatch"></span>Japan</span>
+                <span class="legend-item legend-china"><span class="legend-swatch"></span>China / Jade</span>
+                <span class="legend-item legend-india"><span class="legend-swatch"></span>India / SE Asia</span>
+              </div>
+
               <p class="floor-note">Level 1 — administration, reading rooms &amp; visitor services only</p>
             </div>
 

@@ -8,10 +8,10 @@ export const collection = [
     id: 'buddha',
     title: 'Buddha Statue',
     period: '12th Century',
-    description: 'A monumental image of Vairocana—often understood as the “Universal Buddha”—shown in the uttarabodhimudra, a gesture associated with ultimate enlightenment. Gilded bronze with pigments, Ming dynasty China (16th century). Crow Collection of Asian Art (Accession 1976.3).',
-    longDescription: `This sculpture represents Vairocana, a central figure in Mahāyāna and esoteric Buddhist traditions, embodying universal Buddhahood and the cosmic nature of enlightenment. The uttarabodhimudra (“gesture of supreme awakening”)—with the index fingers raised and joined—signals the attainment of ultimate wisdom and is frequently associated with Vairocana in later East Asian Buddhist art.
+    description: 'A monumental image of Vairocana—often understood as the "Universal Buddha"—shown in the uttarabodhimudra, a gesture associated with ultimate enlightenment. Gilded bronze with pigments, Ming dynasty China (16th century). Crow Collection of Asian Art (Accession 1976.3).',
+    longDescription: `This sculpture represents Vairocana, a central figure in Mahāyāna and esoteric Buddhist traditions, embodying universal Buddhahood and the cosmic nature of enlightenment. The uttarabodhimudra ("gesture of supreme awakening")—with the index fingers raised and joined—signals the attainment of ultimate wisdom and is frequently associated with Vairocana in later East Asian Buddhist art.
 
-Cast in bronze and richly gilded, with traces of pigments that once enlivened its surface, the work reflects Ming dynasty patronage of Buddhism and the period’s taste for luminous, gold-toned devotional images. Such objects were intended to project spiritual radiance and presence, whether used in temple settings or private worship.
+Cast in bronze and richly gilded, with traces of pigments that once enlivened its surface, the work reflects Ming dynasty patronage of Buddhism and the period's taste for luminous, gold-toned devotional images. Such objects were intended to project spiritual radiance and presence, whether used in temple settings or private worship.
 
 Facts:
 - Title: Universal Buddha in the Gesture of Ultimate Enlightenment (Vairocana in Uttarabodhimudra)
@@ -25,11 +25,31 @@ Facts:
     hasAR: true,
     modelPath: './assets/buddha.glb',
     targetIndex: 0,
-    // Approx. real-world height for AR placement (5ft ≈ 1.52m)
     arTargetHeightM: 1.52,
     material: 'Sandstone',
     origin: 'Cambodia',
-    dimensions: '45cm × 30cm × 25cm'
+    dimensions: '45cm × 30cm × 25cm',
+    gallery: 'g2',
+    annotations: [
+      {
+        id: 1,
+        position: { x: 0.0, y: 0.9, z: 0.15 },
+        title: 'Uttarabodhimudra',
+        body: 'The gesture of supreme awakening — index fingers raised and joined — signals the attainment of ultimate wisdom and is frequently associated with Vairocana in East Asian Buddhist art.'
+      },
+      {
+        id: 2,
+        position: { x: 0.3, y: 0.4, z: 0.2 },
+        title: 'Gilded Surface',
+        body: 'Traces of gold leaf and pigments survive on the bronze surface, reflecting the Ming dynasty taste for luminous, radiant devotional images intended to project spiritual presence.'
+      },
+      {
+        id: 3,
+        position: { x: -0.2, y: -0.1, z: 0.25 },
+        title: 'Bronze Casting',
+        body: 'Cast in bronze using the lost-wax method, this sculpture demonstrates the technical mastery of Ming-era foundries. The metal was then gilded and painted with mineral pigments.'
+      }
+    ]
   },
   {
     id: 'gandharan',
@@ -51,11 +71,25 @@ Facts:
     hasModel: true,
     hasAR: false,
     modelPath: './assets/gandharan.glb',
-    // Approx. real-world height for AR placement (19 in ≈ 0.48m)
     arTargetHeightM: 0.48,
     material: 'Gray schist',
     origin: 'Northwest India, Gandhara Region',
-    dimensions: '19 x 17 x 13 1/2 in.'
+    dimensions: '19 x 17 x 13 1/2 in.',
+    gallery: 'g4',
+    annotations: [
+      {
+        id: 1,
+        position: { x: 0.0, y: 0.5, z: 0.2 },
+        title: 'Hellenistic Features',
+        body: 'The naturalistic facial modeling — gentle brow ridge, defined nose bridge, softly parted lips — reflects the Hellenistic sculptural tradition that reached Gandhara through Alexander the Great\'s campaigns.'
+      },
+      {
+        id: 2,
+        position: { x: 0.15, y: 0.7, z: 0.1 },
+        title: 'Wavy Hair',
+        body: 'The carefully articulated wavy hair, arranged in a topknot (ushnisha), blends Greek curling-hair conventions with the Buddhist symbol of spiritual wisdom crowning the head.'
+      }
+    ]
   },
   {
     id: 'vase',
@@ -72,7 +106,8 @@ Vases of this caliber were highly prized and often given as diplomatic gifts to 
     hasAR: false,
     material: 'Porcelain',
     origin: 'China',
-    dimensions: '38cm × 18cm × 18cm'
+    dimensions: '38cm × 18cm × 18cm',
+    gallery: 'g3'
   },
   {
     id: 'bust',
@@ -89,7 +124,8 @@ Discovered in the ruins of a villa near Pompeii, this bust provides invaluable i
     hasAR: false,
     material: 'Carrara Marble',
     origin: 'Italy',
-    dimensions: '52cm × 35cm × 28cm'
+    dimensions: '52cm × 35cm × 28cm',
+    gallery: 'g8'
   },
   {
     id: 'relic',
@@ -106,7 +142,38 @@ Such reliquaries were central to Byzantine religious practice and were often car
     hasAR: false,
     material: 'Gold, Precious Gems',
     origin: 'Constantinople (Istanbul)',
-    dimensions: '22cm × 15cm × 12cm'
+    dimensions: '22cm × 15cm × 12cm',
+    gallery: 'g9'
+  }
+];
+
+/**
+ * Exhibition data for the homepage timeline
+ */
+export const exhibitions = [
+  {
+    title: 'Ink and Gold: Art of the Kano',
+    dates: 'Sep 24, 2024 – Jul 15, 2029',
+    location: 'UT Dallas',
+    thumb: './assets/exhibitions/kano.jpg'
+  },
+  {
+    title: 'Sacred Bronze: Devotional Sculpture of South Asia',
+    dates: 'Jan 12, 2025 – Dec 20, 2026',
+    location: 'Crow Museum',
+    thumb: './assets/exhibitions/bronze.jpg'
+  },
+  {
+    title: 'Jade and Silk: Material Culture of the Han Dynasty',
+    dates: 'Mar 1, 2025 – Nov 30, 2026',
+    location: 'UT Dallas',
+    thumb: './assets/exhibitions/jade.jpg'
+  },
+  {
+    title: 'Gandhara Crossroads: Where East Met West',
+    dates: 'Jun 15, 2025 – May 30, 2027',
+    location: 'Crow Museum',
+    thumb: './assets/exhibitions/gandhara.jpg'
   }
 ];
 
@@ -133,4 +200,13 @@ export function getARObjects() {
  */
 export function getARCount() {
   return collection.filter(obj => obj.hasAR).length;
+}
+
+/**
+ * Get objects by gallery ID
+ * @param {string} galleryId - Gallery ID (e.g. 'g2')
+ * @returns {array}
+ */
+export function getObjectsByGallery(galleryId) {
+  return collection.filter(obj => obj.gallery === galleryId);
 }

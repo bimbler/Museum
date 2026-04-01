@@ -1,19 +1,37 @@
 /**
- * Home Page - Gamified Museum Entry
- * Lightweight, no 3D, CSS animations only
+ * Home Page - Crow Museum of Asian Art
+ * Ink/gold branded hero with rotating exhibition quote and timeline
  */
 
-import { getARCount } from '../data/collection.js';
+import { getARCount, collection, exhibitions } from '../data/collection.js';
 
 export default class HomePage {
   constructor(router, params) {
     this.router = router;
     this.params = params;
+    this.quoteIndex = 0;
+    this.quoteInterval = null;
   }
 
   render() {
     const arCount = getARCount();
-    
+
+    const quotes = collection
+      .filter(obj => obj.longDescription)
+      .map(obj => ({
+        text: obj.description.length > 140 ? obj.description.substring(0, 140) + '...' : obj.description,
+        source: obj.title
+      }));
+
+    const timelineCards = exhibitions.map(ex => `
+      <div class="exhibition-card">
+        <div class="exhibition-thumb" style="background-image: url('${ex.thumb}');"></div>
+        <h3>${ex.title}</h3>
+        <span class="exhibition-dates">${ex.dates}</span>
+        <span class="exhibition-location">${ex.location}</span>
+      </div>
+    `).join('');
+
     return `
       <div class="home-page">
         <div class="home-hero">
@@ -30,20 +48,21 @@ export default class HomePage {
                 <rect x="0" y="50" width="60" height="3" fill="white"/>
               </svg>
             </div>
-            
-            <h1 class="museum-title">Museum AR</h1>
-            <p class="museum-subtitle">Discover History Through Technology</p>
+
+            <h1 class="museum-title">Crow Museum of Asian Art</h1>
+            <hr class="title-rule" />
+            <p class="museum-subtitle">The University of Texas at Dallas</p>
 
             <nav class="home-nav">
-              <button class="home-btn" data-route="/collection" aria-label="Explore art collection">
+              <button class="home-btn home-btn-primary" data-route="/collection" aria-label="Explore art collection">
                 <span class="btn-icon">🎨</span>
                 <div class="btn-content">
-                  <span class="btn-text">Explore Art Collection</span>
+                  <span class="btn-text">Explore Collection</span>
                   <span class="btn-subtitle">View ${arCount} AR experience${arCount !== 1 ? 's' : ''}</span>
                 </div>
               </button>
 
-              <button class="home-btn" data-route="/map" aria-label="View museum map">
+              <button class="home-btn home-btn-outline" data-route="/map" aria-label="View museum map">
                 <span class="btn-icon">🗺️</span>
                 <div class="btn-content">
                   <span class="btn-text">View Museum Map</span>
@@ -54,8 +73,20 @@ export default class HomePage {
 
             <div class="home-badge">
               <span class="badge-pulse"></span>
-              <span class="badge-text">✨ ${arCount} AR Experience${arCount !== 1 ? 's' : ''} Available</span>
+              <span class="badge-text">${arCount} AR Experience${arCount !== 1 ? 's' : ''} Available</span>
             </div>
+
+            <!-- Rotating Exhibition Quote -->
+            ${quotes.length > 0 ? `
+              <div class="quote-rotator" id="quote-rotator">
+                ${quotes.map((q, i) => `
+                  <blockquote class="rotating-quote${i === 0 ? ' active' : ''}" data-index="${i}">
+                    <p>"${q.text}"</p>
+                    <cite>— ${q.source}</cite>
+                  </blockquote>
+                `).join('')}
+              </div>
+            ` : ''}
 
             <footer class="home-footer">
               <p>Point your camera at exhibit markers to view artifacts in 3D</p>
@@ -65,12 +96,21 @@ export default class HomePage {
           <!-- Hero Image Section (60%) -->
           <div class="hero-image"></div>
         </div>
+
+        <!-- Exhibition Timeline -->
+        ${exhibitions.length > 0 ? `
+          <section class="exhibition-section">
+            <h2 class="exhibition-heading">Current & Upcoming Exhibitions</h2>
+            <div class="exhibition-timeline">
+              ${timelineCards}
+            </div>
+          </section>
+        ` : ''}
       </div>
     `;
   }
 
   mount() {
-    // Add event listeners for navigation buttons
     const buttons = document.querySelectorAll('[data-route]');
     buttons.forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -80,10 +120,26 @@ export default class HomePage {
         }
       });
     });
+
+    this.startQuoteRotation();
+  }
+
+  startQuoteRotation() {
+    const quotes = document.querySelectorAll('.rotating-quote');
+    if (quotes.length <= 1) return;
+
+    this.quoteInterval = setInterval(() => {
+      quotes[this.quoteIndex].classList.remove('active');
+      this.quoteIndex = (this.quoteIndex + 1) % quotes.length;
+      quotes[this.quoteIndex].classList.add('active');
+    }, 6000);
   }
 
   cleanup() {
-    // No resources to cleanup (no WebGL, no streams)
+    if (this.quoteInterval) {
+      clearInterval(this.quoteInterval);
+      this.quoteInterval = null;
+    }
     return Promise.resolve();
   }
 }

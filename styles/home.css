@@ -1,6 +1,6 @@
 /**
- * Home Page Styles - Museum Aesthetic
- * Crow Museum inspired design with 40/60 split hero layout
+ * Home Page Styles - Crow Museum of Asian Art
+ * Ink/gold branded hero with exhibition timeline
  */
 
 .home-page {
@@ -8,6 +8,7 @@
   width: 100%;
   min-height: 100vh;
   overflow-x: hidden;
+  background: var(--color-linen);
 }
 
 /* Hero Section - 40/60 Split Layout */
@@ -18,9 +19,9 @@
   position: relative;
 }
 
-/* Brand Panel (Museum Green) */
+/* Brand Panel (Ink Dark) */
 .brand-panel {
-  background: var(--museum-green);
+  background: var(--color-ink);
   color: white;
   padding: var(--spacing-3xl);
   display: flex;
@@ -37,7 +38,7 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(to bottom, transparent, var(--color-gold), transparent);
 }
 
 .museum-logo {
@@ -52,20 +53,31 @@
 }
 
 .museum-title {
-  font-size: 52px;
-  font-weight: 500;
+  font-family: var(--font-heading);
+  font-size: 48px;
+  font-weight: 400;
   line-height: 1.1;
-  letter-spacing: -1.5px;
-  margin-bottom: var(--spacing-md);
+  letter-spacing: 0.02em;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-linen);
   opacity: 0;
   animation: fadeInUp 0.8s ease forwards 0.4s;
 }
 
+.title-rule {
+  border: none;
+  border-top: 1px solid var(--color-gold);
+  width: 60px;
+  margin: 0 0 var(--spacing-sm) 0;
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards 0.5s;
+}
+
 .museum-subtitle {
-  font-family: var(--font-serif);
+  font-family: var(--font-heading);
   font-style: italic;
-  font-size: 20px;
-  color: rgba(255, 255, 255, 0.9);
+  font-size: 18px;
+  color: var(--color-sand);
   margin-bottom: var(--spacing-2xl);
   opacity: 0;
   animation: fadeInUp 0.8s ease forwards 0.6s;
@@ -87,8 +99,6 @@
   align-items: center;
   gap: var(--spacing-md);
   padding: var(--spacing-md) var(--spacing-lg);
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: var(--radius-md);
   color: white;
   text-align: left;
@@ -99,21 +109,25 @@
   min-height: 72px;
 }
 
-.home-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(-100%);
-  transition: transform var(--transition-base);
+.home-btn-primary {
+  background: var(--color-gold);
+  border: 1px solid var(--color-gold);
 }
 
-.home-btn:hover::before {
-  transform: translateX(0);
+.home-btn-primary:hover {
+  background: var(--color-amber);
+  border-color: var(--color-amber);
+  transform: translateX(8px);
+  box-shadow: var(--elevation-3);
 }
 
-.home-btn:hover {
-  border-color: var(--accent-gold);
+.home-btn-outline {
+  background: transparent;
+  border: 1px solid var(--color-gold);
+}
+
+.home-btn-outline:hover {
+  background: var(--color-gold);
   transform: translateX(8px);
   box-shadow: var(--elevation-2);
 }
@@ -123,7 +137,7 @@
 }
 
 .home-btn:focus-visible {
-  outline: 2px solid var(--accent-gold);
+  outline: 2px solid var(--color-gold);
   outline-offset: 2px;
 }
 
@@ -157,10 +171,10 @@
   align-items: center;
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--spacing-md);
-  background: rgba(200, 169, 106, 0.2);
-  border: 1px solid var(--accent-gold);
+  background: rgba(139, 105, 20, 0.25);
+  border: 1px solid var(--color-gold);
   border-radius: var(--radius-md);
-  color: var(--accent-gold);
+  color: var(--color-gold);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -171,7 +185,7 @@
 .badge-pulse {
   width: 6px;
   height: 6px;
-  background: var(--accent-gold);
+  background: var(--color-gold);
   border-radius: 50%;
   animation: pulse 2s ease-in-out infinite;
 }
@@ -187,10 +201,51 @@
   }
 }
 
+/* Rotating Quote */
+.quote-rotator {
+  position: relative;
+  min-height: 100px;
+  margin-top: var(--spacing-xl);
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards 1.1s;
+}
+
+.rotating-quote {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.rotating-quote.active {
+  opacity: 1;
+}
+
+.rotating-quote p {
+  font-family: var(--font-heading);
+  font-style: italic;
+  font-size: 15px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.rotating-quote cite {
+  font-size: 12px;
+  color: var(--color-gold);
+  font-style: normal;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 /* Hero Image Section */
 .hero-image {
   position: relative;
-  background: linear-gradient(135deg, #0a0e1a 0%, #1a2332 100%);
+  background: linear-gradient(to bottom, rgba(26,26,26,0.2) 40%, rgba(26,26,26,0.7) 100%),
+              url('./assets/hero.jpg') center/cover no-repeat;
+  background-color: var(--color-ink);
   overflow: hidden;
 }
 
@@ -198,9 +253,9 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: 
-    radial-gradient(circle at 30% 50%, rgba(200, 169, 106, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 70% 70%, rgba(30, 90, 67, 0.15) 0%, transparent 50%);
+  background-image:
+    radial-gradient(circle at 30% 50%, rgba(139, 105, 20, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 70% 70%, rgba(44, 74, 62, 0.15) 0%, transparent 50%);
   animation: subtleShift 20s ease-in-out infinite;
 }
 
@@ -226,10 +281,111 @@
 
 .home-footer p {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.5);
   margin: 0;
   letter-spacing: 0.3px;
   line-height: 1.5;
+}
+
+/* ===== Exhibition Timeline ===== */
+.exhibition-section {
+  padding: var(--spacing-3xl) var(--spacing-lg);
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.exhibition-heading {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  font-weight: 400;
+  color: var(--color-ink);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  letter-spacing: 0.02em;
+}
+
+.exhibition-timeline {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 1rem 0 1.5rem;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+
+.exhibition-timeline::-webkit-scrollbar {
+  height: 6px;
+}
+
+.exhibition-timeline::-webkit-scrollbar-thumb {
+  background: var(--color-gold);
+  border-radius: 3px;
+}
+
+.exhibition-card {
+  min-width: 260px;
+  max-width: 320px;
+  scroll-snap-align: start;
+  background: var(--color-sand);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 0.5px solid var(--color-gold);
+  flex-shrink: 0;
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.exhibition-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--elevation-3);
+}
+
+.exhibition-thumb {
+  width: 100%;
+  height: 160px;
+  background: var(--bg-light-gray) center/cover no-repeat;
+}
+
+.exhibition-card h3 {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 400;
+  padding: 0.75rem 1rem 0.25rem;
+  color: var(--color-ink);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.exhibition-dates {
+  display: block;
+  padding: 0 1rem;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+.exhibition-location {
+  display: block;
+  padding: 0 1rem 0.75rem;
+  font-size: 12px;
+  color: var(--color-gold);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Desktop: 3-column grid */
+@media (min-width: 1024px) {
+  .exhibition-timeline {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    overflow-x: visible;
+    scroll-snap-type: none;
+  }
+
+  .exhibition-card {
+    min-width: 0;
+    max-width: none;
+  }
 }
 
 /* Animations */
@@ -258,13 +414,13 @@
   .home-hero {
     grid-template-columns: 45% 55%;
   }
-  
+
   .brand-panel {
     padding: var(--spacing-2xl) var(--spacing-xl);
   }
-  
+
   .museum-title {
-    font-size: 42px;
+    font-size: 38px;
   }
 }
 
@@ -274,40 +430,39 @@
     grid-template-rows: 30vh auto;
     min-height: 100vh;
   }
-  
+
   .brand-panel {
     padding: max(var(--spacing-xl), 4vh) var(--spacing-lg);
     min-height: auto;
   }
-  
+
   .brand-panel::after {
     display: none;
   }
-  
+
   .museum-title {
     font-size: clamp(28px, 7vw, 36px);
-    letter-spacing: -1px;
   }
-  
+
   .museum-subtitle {
-    font-size: clamp(16px, 4vw, 18px);
+    font-size: clamp(15px, 4vw, 17px);
   }
-  
+
   .home-btn {
     padding: var(--spacing-md) var(--spacing-md);
     min-height: max(56px, 8vh);
   }
-  
+
   .btn-text {
     font-size: clamp(15px, 3.5vw, 16px);
   }
-  
+
   .hero-image {
     order: -1;
     min-height: 30vh;
     max-height: 30vh;
   }
-  
+
   .home-footer {
     position: relative;
     bottom: auto;
@@ -316,51 +471,59 @@
     margin-top: var(--spacing-lg);
     padding: var(--spacing-md) 0;
   }
+
+  .quote-rotator {
+    min-height: 80px;
+  }
 }
 
 @media (max-width: 480px) {
   .home-hero {
     grid-template-rows: 25vh auto;
   }
-  
+
   .hero-image {
     min-height: 25vh;
     max-height: 25vh;
   }
-  
+
   .museum-title {
     font-size: clamp(24px, 6.5vw, 32px);
   }
-  
+
   .museum-subtitle {
-    font-size: clamp(14px, 3.5vw, 16px);
+    font-size: clamp(13px, 3.5vw, 15px);
   }
-  
+
   .home-nav {
     gap: var(--spacing-sm);
   }
-  
+
   .home-btn {
     gap: var(--spacing-sm);
     min-height: max(52px, 7.5vh);
     padding: var(--spacing-sm) var(--spacing-md);
   }
-  
+
   .btn-icon {
     font-size: clamp(20px, 5vw, 24px);
   }
-  
+
   .brand-panel {
     padding: max(var(--spacing-lg), 3vh) var(--spacing-md);
   }
-  
+
   .museum-logo {
     margin-bottom: max(var(--spacing-md), 2vh);
   }
-  
+
   .museum-logo svg {
     width: clamp(56px, 15vw, 64px);
     height: clamp(56px, 15vw, 64px);
+  }
+
+  .exhibition-section {
+    padding: var(--spacing-xl) var(--spacing-sm);
   }
 }
 
@@ -368,37 +531,37 @@
   .home-hero {
     grid-template-rows: 22vh auto;
   }
-  
+
   .hero-image {
     min-height: 22vh;
     max-height: 22vh;
   }
-  
+
   .museum-title {
     font-size: clamp(22px, 6vw, 28px);
   }
-  
+
   .museum-subtitle {
-    font-size: clamp(13px, 3.2vw, 15px);
+    font-size: clamp(12px, 3.2vw, 14px);
   }
-  
+
   .home-btn {
     min-height: max(50px, 7vh);
     padding: var(--spacing-xs) var(--spacing-sm);
   }
-  
+
   .btn-text {
     font-size: clamp(14px, 3.2vw, 15px);
   }
-  
+
   .btn-subtitle {
     font-size: clamp(12px, 2.8vw, 13px);
   }
-  
+
   .brand-panel {
     padding: max(var(--spacing-md), 2.5vh) var(--spacing-sm);
   }
-  
+
   .home-badge {
     font-size: clamp(11px, 2.8vw, 12px);
     padding: 6px var(--spacing-sm);
@@ -411,44 +574,44 @@
     grid-template-rows: 35vh auto;
     min-height: 100vh;
   }
-  
+
   .hero-image {
     min-height: 35vh;
     max-height: 35vh;
   }
-  
+
   .brand-panel {
     padding: var(--spacing-md) var(--spacing-lg);
   }
-  
+
   .museum-logo {
     margin-bottom: var(--spacing-sm);
   }
-  
+
   .museum-logo svg {
     width: 48px;
     height: 48px;
   }
-  
+
   .museum-title {
     font-size: clamp(20px, 5vh, 28px);
     margin-bottom: var(--spacing-sm);
   }
-  
+
   .museum-subtitle {
-    font-size: clamp(14px, 3vh, 16px);
+    font-size: clamp(13px, 3vh, 15px);
     margin-bottom: var(--spacing-md);
   }
-  
+
   .home-nav {
     gap: var(--spacing-xs);
   }
-  
+
   .home-btn {
     min-height: 48px;
     padding: var(--spacing-xs) var(--spacing-md);
   }
-  
+
   .home-footer {
     margin-top: var(--spacing-sm);
     padding: var(--spacing-xs) 0;

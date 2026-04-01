@@ -1,6 +1,6 @@
 /**
  * Object Detail Page
- * Shows 3D preview with OrbitControls and object information
+ * Shows 3D preview with OrbitControls, annotation hotspots, and object information
  */
 
 import { getObjectById } from '../data/collection.js';
@@ -20,7 +20,6 @@ export default class ObjectDetailPage {
     const objectId = this.params.id;
     this.object = getObjectById(objectId);
 
-    // Get AR options based on device
     this.arOptions = await getAROptions();
 
     if (!this.object) {
@@ -48,15 +47,14 @@ export default class ObjectDetailPage {
         <div class="detail-content">
           ${this.object.hasModel ? `
             <div class="viewer-section">
-              <!-- Interactive Hint -->
               <div class="viewer-hint" id="viewer-hint">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="10"/>
                   <path d="M12 16v-4M12 8h.01"/>
                 </svg>
-                <span>Drag to rotate • Scroll to zoom</span>
+                <span>Drag to rotate · Scroll to zoom · Click pins for details</span>
               </div>
-              
+
               <div class="viewer-container" id="three-viewer"></div>
               <div class="viewer-status" id="viewer-status">
                 <div class="loader"></div>
@@ -75,6 +73,13 @@ export default class ObjectDetailPage {
                   </svg>
                 </button>
               </div>
+
+              <!-- Annotation Panel (slides in from right) -->
+              <div class="annotation-panel" id="annotation-panel">
+                <button class="annotation-close" id="annotation-close" aria-label="Close annotation">&times;</button>
+                <h3 id="annotation-title"></h3>
+                <p id="annotation-body"></p>
+              </div>
             </div>
           ` : `
             <div class="viewer-section no-model">
@@ -83,7 +88,6 @@ export default class ObjectDetailPage {
           `}
 
           <div class="detail-info">
-            <!-- Breadcrumb Navigation -->
             <nav class="breadcrumb" aria-label="Breadcrumb">
               <a href="#/" class="breadcrumb-link">Home</a>
               <span class="breadcrumb-separator">›</span>
@@ -91,7 +95,7 @@ export default class ObjectDetailPage {
               <span class="breadcrumb-separator">›</span>
               <span class="breadcrumb-current">${this.object.title}</span>
             </nav>
-            
+
             <div class="info-header">
               <div class="info-meta">
                 <span class="meta-item"><strong>Period:</strong> ${this.object.period}</span>
@@ -109,12 +113,11 @@ export default class ObjectDetailPage {
             ${this.object.hasAR ? `
               <div class="ar-section">
                 <div class="ar-info">
-                  <h3>✨ AR Experiences Available</h3>
+                  <h3>AR Experiences Available</h3>
                   <p>View this object in augmented reality using one of the modes below.</p>
                   <p class="ar-disclaimer">Note: AR uses your camera and may drain battery.</p>
                 </div>
-                
-                <!-- Step-by-step Instructions -->
+
                 <div class="ar-instructions">
                   <h4>How to use AR:</h4>
                   <ol>
@@ -124,9 +127,8 @@ export default class ObjectDetailPage {
                     <li>Use touch gestures to interact with the 3D model</li>
                   </ol>
                 </div>
-                
+
                 <div class="ar-buttons-grid">
-                  <!-- Marker AR (Always available) -->
                   <button class="ar-launch-btn marker-ar" data-action="launch-ar">
                     <div class="ar-btn-icon">
                       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -146,7 +148,6 @@ export default class ObjectDetailPage {
                     </div>
                   </button>
 
-                  <!-- Plane AR (Android Chrome only) -->
                   ${this.arOptions.showPlaneAR && this.object.hasModel ? `
                     <button class="ar-launch-btn plane-ar" data-action="launch-plane-ar">
                       <div class="ar-btn-icon">
@@ -159,7 +160,7 @@ export default class ObjectDetailPage {
                       <div class="ar-btn-content">
                         <span class="ar-btn-title">Place on Surface</span>
                         <span class="ar-btn-subtitle">Tap to place anywhere</span>
-                        <span class="ar-btn-badge">⚡ Experimental</span>
+                        <span class="ar-btn-badge">Experimental</span>
                       </div>
                     </button>
                   ` : ''}
@@ -167,7 +168,7 @@ export default class ObjectDetailPage {
 
                 ${!this.arOptions.showPlaneAR ? `
                   <div class="ar-platform-note">
-                    <p><strong>💡 Did you know?</strong> Surface placement AR is available on Android Chrome. Currently viewing from ${this.arOptions.deviceSupport.platform}.</p>
+                    <p><strong>Did you know?</strong> Surface placement AR is available on Android Chrome. Currently viewing from ${this.arOptions.deviceSupport.platform}.</p>
                   </div>
                 ` : ''}
               </div>
@@ -179,7 +180,6 @@ export default class ObjectDetailPage {
   }
 
   async mount() {
-    // Back button
     const backBtn = document.querySelector('[data-action="back"]');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
@@ -187,12 +187,10 @@ export default class ObjectDetailPage {
       });
     }
 
-    // Initialize 3D viewer if model exists
     if (this.object && this.object.hasModel) {
       await this.init3DViewer();
     }
 
-    // AR launch buttons
     const markerArBtn = document.querySelector('[data-action="launch-ar"]');
     if (markerArBtn) {
       markerArBtn.addEventListener('click', () => {
@@ -216,17 +214,19 @@ export default class ObjectDetailPage {
     if (!container) return;
 
     try {
-      // Create viewer
       this.viewer = new ThreeViewer(container);
-
-      // Load model
       await this.viewer.loadModel(this.object.modelPath);
 
-      // Hide status, show controls
       if (status) status.style.display = 'none';
       if (controls) controls.style.display = 'flex';
 
-      // Setup control buttons
+      // Add annotation hotspots if available
+      if (this.object.annotations && this.object.annotations.length > 0) {
+        this.viewer.addAnnotations(this.object.annotations, (annotation) => {
+          this.openAnnotationPanel(annotation);
+        });
+      }
+
       const resetBtn = document.querySelector('[data-action="reset-camera"]');
       if (resetBtn) {
         resetBtn.addEventListener('click', () => {
@@ -246,14 +246,46 @@ export default class ObjectDetailPage {
       console.error('Failed to load 3D model:', error);
       if (status) {
         status.innerHTML = `
-          <span style="color: #ff6b6b;">Failed to load 3D model</span>
+          <span style="color: var(--color-lacquer);">Failed to load 3D model</span>
         `;
       }
     }
   }
 
+  openAnnotationPanel(annotation) {
+    const panel = document.getElementById('annotation-panel');
+    const title = document.getElementById('annotation-title');
+    const body = document.getElementById('annotation-body');
+    const closeBtn = document.getElementById('annotation-close');
+
+    if (!panel || !title || !body) return;
+
+    title.textContent = annotation.title;
+    body.textContent = annotation.body;
+    panel.classList.add('open');
+
+    if (this.viewer) {
+      this.viewer.pauseControls();
+    }
+
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        this.closeAnnotationPanel();
+      };
+    }
+  }
+
+  closeAnnotationPanel() {
+    const panel = document.getElementById('annotation-panel');
+    if (panel) {
+      panel.classList.remove('open');
+    }
+    if (this.viewer) {
+      this.viewer.resumeControls();
+    }
+  }
+
   cleanup() {
-    // Dispose 3D viewer
     if (this.viewer) {
       this.viewer.dispose();
       this.viewer = null;

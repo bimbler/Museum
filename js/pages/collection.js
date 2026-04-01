@@ -59,15 +59,23 @@ export default class CollectionPage {
   }
 
   renderCard(obj) {
+    const featuredClass = obj.hasAR ? ' featured' : '';
+    const originText = [obj.origin, obj.period].filter(Boolean).join(' \u00B7 ');
+
     return `
-      <article class="object-card" data-id="${obj.id}">
+      <article class="object-card${featuredClass}" data-id="${obj.id}">
         <div class="card-image">
           <img src="${obj.thumbnail}" alt="${obj.title}" loading="lazy" />
           ${obj.hasAR ? '<span class="ar-badge">✨ AR</span>' : ''}
+          <div class="tile-overlay">
+            <span class="tile-title">${obj.title}</span>
+            <span class="tile-origin">${originText}</span>
+          </div>
         </div>
         <div class="card-content">
           <h2 class="card-title">${obj.title}</h2>
           <p class="card-period">${obj.period}</p>
+          <span class="card-origin">${originText}</span>
           <p class="card-description">${obj.description}</p>
           <button class="card-btn" data-id="${obj.id}">
             View Details
