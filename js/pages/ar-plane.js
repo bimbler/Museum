@@ -18,6 +18,8 @@ export default class ARPlanePage {
     this.scaleMultiplier = 1.5;
     this.heightOffsetM = 0.3;
     this.hasPlacedObject = false;
+    this.arPhase = 'scanning'; // 'scanning' | 'reticle-visible' | 'placed'
+    this.placedTimestamp = null;
   }
   
   log(message, type = 'info') {
@@ -110,84 +112,8 @@ export default class ARPlanePage {
             Exit AR
           </button>
 
-          <div class="webxr-instructions" id="webxr-instructions" style="display: none;">
-            <div class="instruction-content">
-              <div class="instruction-icon">📱</div>
-              <h3>Scan Your Space</h3>
-              <p>Move your phone slowly to detect surfaces</p>
-              <div class="instruction-steps">
-                <div class="step">1. Point camera at floor or table</div>
-                <div class="step">2. Wait for circle to appear</div>
-                <div class="step">3. Tap to place ${this.object.title}</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="webxr-status" id="webxr-status" style="display: none;">
-            <span class="status-icon">🔍</span>
-            <span class="status-text">Initializing AR...</span>
-          </div>
-
-          <div class="webxr-controls" id="webxr-controls" style="display: none;" data-open="true">
-            <button class="webxr-controls-toggle" id="webxr-controls-toggle" type="button">
-              <span id="controls-toggle-label">Hide controls</span>
-            </button>
-            <div class="webxr-controls-inner">
-            <button class="webxr-control-btn" data-action="place" title="Tap to Place">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="10"/>
-                <circle cx="12" cy="12" r="3" fill="currentColor"/>
-              </svg>
-              <span class="btn-label">Tap to Place</span>
-            </button>
-
-            <button class="webxr-control-btn" data-action="undo" title="Remove Last" style="display: none;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M3 7v6h6"/>
-                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
-              </svg>
-              <span class="btn-label">Undo</span>
-            </button>
-
-            <div class="webxr-scale" aria-label="Scale control">
-              <div class="scale-header">
-                <span class="scale-label">Size</span>
-                <span class="scale-value" id="scale-value">1.5×</span>
-              </div>
-              <input
-                id="scale-slider"
-                class="scale-slider"
-                type="range"
-                min="1"
-                max="15"
-                step="0.1"
-                value="1.5"
-                aria-label="Scale object size"
-              />
-            </div>
-
-            <div class="webxr-height" aria-label="Height control">
-              <div class="scale-header">
-                <span class="scale-label">Height</span>
-                <span class="scale-value" id="height-value">0.3m</span>
-              </div>
-              <input
-                id="height-slider"
-                class="scale-slider"
-                type="range"
-                min="0"
-                max="1.5"
-                step="0.05"
-                value="0.3"
-                aria-label="Raise object height"
-              />
-            </div>
-
-            <div class="placement-counter" id="placement-counter">
-              <span class="counter-label">Placed:</span>
-              <span class="counter-value">0</span>
-            </div>
-            </div>
+          <div class="ar-coach-bubble" id="ar-coach-bubble" style="display: none;">
+            <span class="coach-text" id="coach-text">Move your phone slowly to scan surfaces</span>
           </div>
         </div>
       </div>
@@ -260,12 +186,8 @@ export default class ARPlanePage {
         
         this.log('User clicked Start AR Session button');
         
-        // IMPORTANT (User Activation):
-        // Do not `await` here before requestSession(). Start the flow synchronously
-        // and attach handlers to the returned promise instead.
         this.startWebXR()
           .then(() => {
-            // Hide start overlay on success
             const overlay = document.getElementById('webxr-start-overlay');
             if (overlay && this.webxrController?.isSessionActive()) {
               overlay.style.display = 'none';
@@ -273,7 +195,6 @@ export default class ARPlanePage {
           })
           .catch((error) => {
             this.log(`Failed to start: ${error.message}`, 'error');
-            // Re-enable button on error so user can try again
             startBtn.disabled = false;
             startBtn.textContent = 'Try Again';
           });
@@ -284,85 +205,6 @@ export default class ARPlanePage {
     const exitBtn = document.querySelector('[data-action="exit"]');
     if (exitBtn) {
       exitBtn.addEventListener('click', () => this.exitWebXR());
-    }
-
-    // Place button (tap anywhere alternative)
-    const placeBtn = document.querySelector('[data-action="place"]');
-    if (placeBtn) {
-      placeBtn.addEventListener('click', () => this.placeModel());
-    }
-
-    // Undo button
-    const undoBtn = document.querySelector('[data-action="undo"]');
-    if (undoBtn) {
-      undoBtn.addEventListener('click', () => this.undoLastPlacement());
-    }
-
-    // Listen for select events (screen taps in XR)
-    document.addEventListener('selectstart', () => {
-      this.placeModel();
-    });
-
-    // Scale slider
-    const scaleSlider = document.getElementById('scale-slider');
-    const scaleValue = document.getElementById('scale-value');
-    if (scaleSlider && scaleValue) {
-      const updateScaleUI = (value) => {
-        const num = Number(value);
-        if (!Number.isFinite(num)) return;
-        this.scaleMultiplier = num;
-        scaleValue.textContent = `${num.toFixed(1)}×`;
-        if (this.webxrController) {
-          this.webxrController.setScaleMultiplier(num);
-        }
-      };
-
-      // Initialize
-      updateScaleUI(scaleSlider.value);
-
-      scaleSlider.addEventListener('input', (e) => {
-        updateScaleUI(e.target.value);
-      });
-    }
-
-    // Height slider
-    const heightSlider = document.getElementById('height-slider');
-    const heightValue = document.getElementById('height-value');
-    if (heightSlider && heightValue) {
-      const updateHeightUI = (value) => {
-        const num = Number(value);
-        if (!Number.isFinite(num)) return;
-        this.heightOffsetM = num;
-        heightValue.textContent = `${num.toFixed(2)}m`;
-        if (this.webxrController) {
-          this.webxrController.setHeightOffset(num);
-        }
-      };
-
-      updateHeightUI(heightSlider.value);
-
-      heightSlider.addEventListener('input', (e) => {
-        updateHeightUI(e.target.value);
-      });
-    }
-
-    // Controls collapse toggle
-    const controls = document.getElementById('webxr-controls');
-    const controlsToggle = document.getElementById('webxr-controls-toggle');
-    const controlsToggleLabel = document.getElementById('controls-toggle-label');
-    if (controls && controlsToggle && controlsToggleLabel) {
-      const updateToggleLabel = () => {
-        const isOpen = controls.getAttribute('data-open') !== 'false';
-        controlsToggleLabel.textContent = isOpen ? 'Hide controls' : 'Show controls';
-      };
-
-      updateToggleLabel();
-
-      controlsToggle.addEventListener('click', () => {
-        const isOpen = controls.getAttribute('data-open') !== 'false';
-        controls.setAttribute('data-open', isOpen ? 'false' : 'true');
-        updateToggleLabel();
-      });
     }
   }
 
@@ -503,9 +345,7 @@ export default class ARPlanePage {
 
   async startWebXR() {
     const container = document.getElementById('webxr-container');
-    const status = document.getElementById('webxr-status');
-    const instructions = document.getElementById('webxr-instructions');
-    const controls = document.getElementById('webxr-controls');
+    const coachBubble = document.getElementById('ar-coach-bubble');
 
     if (!container) {
       this.log('✗ WebXR container not found');
@@ -517,36 +357,20 @@ export default class ARPlanePage {
       this.log('Creating WebXR controller...');
       this.webxrController = new WebXRController(this.log.bind(this));
 
-      // Show status now that session is starting
-      if (status) status.style.display = 'block';
-      this.updateStatus('Starting AR session...', '🚀');
-
       this.log('Starting WebXR session...');
       await this.webxrController.startSession(
         container,
         this.object.modelPath,
         {
-          // Use real-world sizing (meters) when available
           arTargetHeightM: typeof this.object.arTargetHeightM === 'number' ? this.object.arTargetHeightM : undefined,
-          // Apply current UI scale multiplier
           scaleMultiplier: this.scaleMultiplier,
           heightOffsetM: this.heightOffsetM,
           onStart: () => {
             this.log('✓ AR session started successfully!');
-            this.updateStatus('Point camera at a surface', '📱');
-            
-            // Show instructions
-            if (instructions) {
-              instructions.style.display = 'block';
-              setTimeout(() => {
-                instructions.style.opacity = '0';
-                setTimeout(() => instructions.style.display = 'none', 300);
-              }, 3000);
-            }
-            
-            if (controls) {
-              controls.style.display = 'flex';
-            }
+            this.arPhase = 'scanning';
+            if (coachBubble) coachBubble.style.display = 'flex';
+            this.setCoachText('Move your phone slowly to scan surfaces');
+            this.setupTapToPlace(container);
             this.startRenderLoop();
           },
           onEnd: () => {
@@ -625,82 +449,81 @@ export default class ARPlanePage {
     if (!this.webxrController) return;
 
     const isReticleVisible = this.webxrController.isReticleVisible();
-    const placedCount = this.webxrController.getPlacedModelsCount();
 
-    // Update status
-    if (isReticleVisible) {
-      this.updateStatus('Tap to place object', '✨');
-    } else {
-      this.updateStatus('Scan for surfaces...', '🔍');
+    if (this.hasPlacedObject) {
+      if (this.arPhase !== 'placed') {
+        this.arPhase = 'placed';
+        this.placedTimestamp = Date.now();
+        this.setCoachText('Object placed!');
+        setTimeout(() => {
+          if (this.arPhase === 'placed') {
+            this.setCoachText('Drag to move \u00b7 Two fingers to rotate \u00b7 Pinch to resize');
+          }
+        }, 3000);
+      }
+      return;
     }
 
-    // Update counter
-    const counterValue = document.querySelector('.counter-value');
-    if (counterValue) {
-      counterValue.textContent = placedCount;
+    if (isReticleVisible && this.arPhase !== 'reticle-visible') {
+      this.arPhase = 'reticle-visible';
+      this.setCoachText('Tap anywhere to place');
+    } else if (!isReticleVisible && this.arPhase !== 'scanning') {
+      this.arPhase = 'scanning';
+      this.setCoachText('Move your phone slowly to scan surfaces');
     }
+  }
 
-    // Show/hide undo button
-    const undoBtn = document.querySelector('[data-action="undo"]');
-    if (undoBtn) {
-      undoBtn.style.display = placedCount > 0 ? 'flex' : 'none';
-    }
+  setCoachText(text) {
+    const el = document.getElementById('coach-text');
+    if (el) el.textContent = text;
+  }
 
-    // Enable/disable place button based on reticle
-    const placeBtn = document.querySelector('[data-action="place"]');
-    if (placeBtn) {
-      const canPlace = isReticleVisible && placedCount === 0;
-      placeBtn.disabled = !canPlace;
-      placeBtn.style.opacity = canPlace ? '1' : '0.5';
-    }
+  setupTapToPlace(container) {
+    const canvas = container.querySelector('canvas');
+    const target = canvas || container;
+
+    this._onTapToPlace = (e) => {
+      if (this.hasPlacedObject) return;
+      if (!this.webxrController?.isReticleVisible()) return;
+
+      // Ignore multi-touch
+      if (e.type === 'touchend' && e.changedTouches.length > 1) return;
+
+      e.preventDefault();
+      this.placeModel();
+    };
+
+    target.addEventListener('touchend', this._onTapToPlace, { passive: false });
+    target.addEventListener('click', this._onTapToPlace);
   }
 
   placeModel() {
     if (!this.webxrController) return;
-
-    // Only allow a single placed object at a time.
     if (this.hasPlacedObject) return;
 
     this.webxrController.placeModel()
       .then((model) => {
         if (!model) return;
         this.hasPlacedObject = true;
-        this.updateStatus('Object placed!', '✅');
         this.updatePlacementUI();
 
-        // Flash feedback
+        // Enable touch gestures on the placed model
         const container = document.getElementById('webxr-container');
+        const canvas = container?.querySelector('canvas');
+        if (canvas && this.webxrController) {
+          this.webxrController.setupTouchGestures(canvas);
+        }
+
+        // Flash feedback
         if (container) {
           container.style.transition = 'opacity 0.1s';
           container.style.opacity = '0.7';
-          setTimeout(() => {
-            container.style.opacity = '1';
-          }, 100);
+          setTimeout(() => { container.style.opacity = '1'; }, 100);
         }
       })
       .catch((e) => {
         this.log(`Placement failed: ${e.message}`, 'error');
       });
-  }
-
-  undoLastPlacement() {
-    if (!this.webxrController) return;
-
-    this.webxrController.removeLastModel();
-    this.hasPlacedObject = false;
-    this.updateStatus('Last placement removed', '↩️');
-    this.updatePlacementUI();
-  }
-
-  updateStatus(text, icon = '📱') {
-    const statusEl = document.getElementById('webxr-status');
-    if (statusEl) {
-      const iconEl = statusEl.querySelector('.status-icon');
-      const textEl = statusEl.querySelector('.status-text');
-      
-      if (iconEl) iconEl.textContent = icon;
-      if (textEl) textEl.textContent = text;
-    }
   }
 
   showError(title, details) {
@@ -721,21 +544,9 @@ export default class ARPlanePage {
       `;
       startOverlay.style.display = 'flex';
     }
-    
-    this.updateStatus(title, '⚠️');
-    
-    // Hide instructions
-    const instructions = document.getElementById('webxr-instructions');
-    if (instructions) {
-      instructions.style.display = 'none';
-    }
-    
-    // Show status with error styling
-    const status = document.getElementById('webxr-status');
-    if (status) {
-      status.style.display = 'block';
-      status.style.background = 'rgba(255, 59, 48, 0.9)';
-    }
+
+    const coachBubble = document.getElementById('ar-coach-bubble');
+    if (coachBubble) coachBubble.style.display = 'none';
   }
 
   async exitWebXR() {
@@ -755,12 +566,21 @@ export default class ARPlanePage {
     this.stopRenderLoop();
 
     if (this.webxrController) {
+      this.webxrController.removeTouchGestures();
       await this.webxrController.stopSession();
       this.webxrController = null;
     }
 
-    // Remove event listeners
-    document.removeEventListener('selectstart', this.placeModel);
+    // Remove tap-to-place listener
+    if (this._onTapToPlace) {
+      const container = document.getElementById('webxr-container');
+      const canvas = container?.querySelector('canvas');
+      const target = canvas || container;
+      if (target) {
+        target.removeEventListener('touchend', this._onTapToPlace);
+        target.removeEventListener('click', this._onTapToPlace);
+      }
+    }
 
     return Promise.resolve();
   }

@@ -488,8 +488,125 @@ export default class WebXRController {
     return this.reticle ? this.reticle.visible : false;
   }
 
+  setupTouchGestures(canvas) {
+    this._gestureCanvas = canvas;
+    this._gesture = { type: null, prevTouches: null, initialPinchDist: null, initialScale: null };
+
+    this._onTouchStart = (e) => {
+      if (this.placedModels.length === 0) return;
+      const touches = e.touches;
+
+      if (touches.length === 1) {
+        this._gesture = { type: 'drag', prevTouches: [{ x: touches[0].clientX, y: touches[0].clientY }], initialPinchDist: null, initialScale: null };
+      } else if (touches.length === 2) {
+        const dx = touches[1].clientX - touches[0].clientX;
+        const dy = touches[1].clientY - touches[0].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const model = this.placedModels[this.placedModels.length - 1];
+        const currentScale = model ? model.scale.x : 1;
+
+        this._gesture = {
+          type: 'two-finger',
+          prevTouches: [
+            { x: touches[0].clientX, y: touches[0].clientY },
+            { x: touches[1].clientX, y: touches[1].clientY }
+          ],
+          initialPinchDist: dist,
+          initialScale: currentScale
+        };
+      }
+    };
+
+    this._onTouchMove = (e) => {
+      if (this.placedModels.length === 0 || !this._gesture.type) return;
+      e.preventDefault();
+
+      const touches = e.touches;
+      const model = this.placedModels[this.placedModels.length - 1];
+      if (!model) return;
+
+      if (touches.length === 1 && this._gesture.type === 'drag') {
+        // Single-finger drag: reposition via hit-test raycasting
+        this._dragModelWithHitTest(touches[0], model);
+        this._gesture.prevTouches = [{ x: touches[0].clientX, y: touches[0].clientY }];
+
+      } else if (touches.length === 2 && this._gesture.type === 'two-finger') {
+        const prev = this._gesture.prevTouches;
+        if (!prev || prev.length < 2) return;
+
+        // Rotation: horizontal midpoint delta
+        const prevMidX = (prev[0].x + prev[1].x) / 2;
+        const currMidX = (touches[0].clientX + touches[1].clientX) / 2;
+        const deltaX = currMidX - prevMidX;
+        const rotSensitivity = 0.007;
+        model.rotation.y += deltaX * rotSensitivity;
+
+        // Pinch-to-scale
+        const dx = touches[1].clientX - touches[0].clientX;
+        const dy = touches[1].clientY - touches[0].clientY;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+
+        if (this._gesture.initialPinchDist > 0 && this._gesture.initialScale > 0) {
+          const ratio = dist / this._gesture.initialPinchDist;
+          const base = model.userData?.baseScaleScalar || this.templateBaseScaleScalar || 1;
+          const newScaleScalar = this._gesture.initialScale * ratio;
+          const minScale = base * 0.5;
+          const maxScale = base * 15;
+          const clamped = Math.max(minScale, Math.min(maxScale, newScaleScalar));
+          model.scale.setScalar(clamped);
+        }
+
+        this._gesture.prevTouches = [
+          { x: touches[0].clientX, y: touches[0].clientY },
+          { x: touches[1].clientX, y: touches[1].clientY }
+        ];
+      }
+    };
+
+    this._onTouchEnd = (e) => {
+      if (e.touches.length === 0) {
+        this._gesture = { type: null, prevTouches: null, initialPinchDist: null, initialScale: null };
+      } else if (e.touches.length === 1) {
+        // Went from 2 fingers to 1: switch to drag
+        this._gesture = { type: 'drag', prevTouches: [{ x: e.touches[0].clientX, y: e.touches[0].clientY }], initialPinchDist: null, initialScale: null };
+      }
+    };
+
+    canvas.addEventListener('touchstart', this._onTouchStart, { passive: true });
+    canvas.addEventListener('touchmove', this._onTouchMove, { passive: false });
+    canvas.addEventListener('touchend', this._onTouchEnd, { passive: true });
+  }
+
+  _dragModelWithHitTest(touch, model) {
+    if (!this.hitTestSource || !this.referenceSpace) return;
+
+    // Use the latest hit-test result from the center of the screen (reticle position).
+    // WebXR hit-test is screen-center only (viewer space), so for a drag we reposition
+    // the model to the current reticle location when the reticle is visible.
+    if (this.reticle && this.reticle.visible) {
+      const pos = new THREE.Vector3();
+      const quat = new THREE.Quaternion();
+      const scl = new THREE.Vector3();
+      this.reticle.matrix.decompose(pos, quat, scl);
+      pos.y += this.heightOffsetM;
+      model.position.copy(pos);
+    }
+  }
+
+  removeTouchGestures() {
+    if (this._gestureCanvas) {
+      if (this._onTouchStart) this._gestureCanvas.removeEventListener('touchstart', this._onTouchStart);
+      if (this._onTouchMove) this._gestureCanvas.removeEventListener('touchmove', this._onTouchMove);
+      if (this._onTouchEnd) this._gestureCanvas.removeEventListener('touchend', this._onTouchEnd);
+      this._gestureCanvas = null;
+    }
+    this._gesture = null;
+  }
+
   async stopSession() {
     console.log('Stopping WebXR session...');
+
+    this.removeTouchGestures();
 
     // Clear all placed models
     this.clearAllModels();
