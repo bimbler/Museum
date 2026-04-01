@@ -97,20 +97,15 @@ export default class CollectionPage {
       });
     }
 
-    // Card button handlers
-    const cardButtons = document.querySelectorAll('.card-btn');
-    cardButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = e.currentTarget.getAttribute('data-id');
+    const cards = document.querySelectorAll('.object-card');
+    cards.forEach((card, index) => {
+      card.addEventListener('click', () => {
+        const id = card.getAttribute('data-id');
         if (id) {
           this.router.navigate(`/object/${id}`);
         }
       });
-    });
 
-    // Add staggered fade-in animation
-    const cards = document.querySelectorAll('.object-card');
-    cards.forEach((card, index) => {
       setTimeout(() => {
         card.classList.add('fade-in');
       }, index * 100);
